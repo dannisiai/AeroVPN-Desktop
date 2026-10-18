@@ -8,6 +8,7 @@ import {
   PROFILE_EDITOR_WINDOW_DIRTY,
   PROFILE_EDITOR_WINDOW_OPEN,
 } from "../shared/ipc";
+import { AERO_MANAGED_MODE } from "../shared/appPolicy";
 import { captureRuntimeCrash } from "./appReports";
 import { developmentRendererURL } from "./development";
 import { resourcePath } from "./resources";
@@ -32,6 +33,9 @@ export function registerProfileEditorWindows(onAllClosed: () => void): Set<Brows
   ipcMain.handle(
     PROFILE_EDITOR_WINDOW_OPEN,
     async (_event, profileId: unknown, readOnly: unknown) => {
+      if (AERO_MANAGED_MODE) {
+        throw new Error("Profile editing is managed by AeroVPN.");
+      }
       if (typeof profileId !== "string" || profileId === "" || typeof readOnly !== "boolean") {
         throw new Error("invalid profile editor request");
       }

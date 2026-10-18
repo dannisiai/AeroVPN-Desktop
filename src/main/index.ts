@@ -12,6 +12,7 @@ import {
   TAILDROP_SEND_REQUEST,
   UPDATES_PRESENT,
 } from "../shared/ipc";
+import { AERO_MANAGED_MODE } from "../shared/appPolicy";
 import type {
   DeepLinkImport,
   ProfileFileImport,
@@ -25,6 +26,7 @@ import {
 } from "./appReports";
 import type { RuntimeCrashCaptureResult } from "./appReports";
 import { registerApplication } from "./application";
+import { registerAeroAuth } from "./aeroAuth";
 import { registerDaemonBridge } from "./bridge";
 import { registerCore } from "./core";
 import { settingsDatabase } from "./database";
@@ -344,6 +346,9 @@ function sendWhenLoaded(channel: string, payload: unknown) {
 }
 
 function handleDeepLink(link: string) {
+  if (AERO_MANAGED_MODE) {
+    return;
+  }
   const request = parseImportLink(link);
   if (request === null) {
     return;
@@ -383,6 +388,9 @@ function handleNotificationOpen(openURL: string) {
 }
 
 function handleProfileFile(path: string) {
+  if (AERO_MANAGED_MODE) {
+    return;
+  }
   void readFile(path).then(
     (data) => {
       sendWhenLoaded(PROFILE_FILE_IMPORT, {
@@ -413,10 +421,16 @@ function deliverTaildropSend(files: TaildropSendFile[]) {
 const queueTaildropSend = createTaildropSendBatcher(deliverTaildropSend);
 
 function deepLinkFromArguments(argv: string[]): string | undefined {
+  if (AERO_MANAGED_MODE) {
+    return undefined;
+  }
   return argv.find((argument) => argument.startsWith("sing-box://"));
 }
 
 function profileFileFromArguments(argv: string[]): string | undefined {
+  if (AERO_MANAGED_MODE) {
+    return undefined;
+  }
   return argv.find((argument) => argument.toLowerCase().endsWith(".bpf"));
 }
 
@@ -470,6 +484,7 @@ if (!singleInstanceLock) {
     terminalWindows = registerTerminalWindows(maybeQuitAfterWindowClosed);
     profileEditorWindows = registerProfileEditorWindows(maybeQuitAfterWindowClosed);
     registerApplication(showWindow);
+    registerAeroAuth();
     ipcMain.on(APP_TITLE_BAR_OVERLAY, (event, colors: TitleBarOverlayColors) => {
       if (process.platform === "darwin") {
         return;

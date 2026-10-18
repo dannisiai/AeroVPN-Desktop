@@ -6,6 +6,11 @@ import type { Plugin } from "vite";
 
 import { readApplicationVersion } from "./scripts/version";
 
+const aeroManagedMode = process.env.SFW_PROFILE_MODE !== "generic";
+const managedModeDefine = {
+  __AERO_MANAGED_MODE__: JSON.stringify(aeroManagedMode),
+};
+
 function contentSecurityPolicy(): Plugin {
   let development = false;
   return {
@@ -45,6 +50,7 @@ export default defineConfig({
   main: {
     define: {
       __APP_VERSION__: JSON.stringify(readApplicationVersion()),
+      ...managedModeDefine,
     },
     resolve: {
       alias: {
@@ -53,6 +59,7 @@ export default defineConfig({
     },
   },
   preload: {
+    define: managedModeDefine,
     build: {
       rollupOptions: {
         output: {

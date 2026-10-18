@@ -66,6 +66,7 @@ export function createDesktopHost(): DesktopHost {
 
   return {
     platform: bridge.platform,
+    managedMode: bridge.managedMode,
     appVersion: () => bridge.app.version(),
     transport,
     preferences: {
@@ -82,6 +83,22 @@ export function createDesktopHost(): DesktopHost {
         preferenceListeners.add(listener);
         return () => preferenceListeners.delete(listener);
       },
+    },
+    auth: {
+      restore: () => bridge.auth.restore(),
+      sendVerificationCode: (email) => bridge.auth.sendVerificationCode(email),
+      register: (email, password, code) => bridge.auth.register(email, password, code),
+      login: (email, password) => bridge.auth.login(email, password),
+      forgotPassword: (email) => bridge.auth.forgotPassword(email),
+      resetPassword: (email, code, newPassword) => bridge.auth.resetPassword(email, code, newPassword),
+      refreshAccount: () => bridge.auth.refreshAccount(),
+      getRegions: () => bridge.auth.getRegions(),
+      activeConnection: () => bridge.auth.activeConnection(),
+      connect: (regionId, cityId) => bridge.auth.connect(regionId, cityId),
+      disconnect: () => bridge.auth.disconnect(),
+      listConnectSessions: () => bridge.auth.listConnectSessions(),
+      revokeConnectSession: (sessionId) => bridge.auth.revokeConnectSession(sessionId),
+      logout: () => bridge.auth.logout(),
     },
     daemon: {
       getState: () => bridge.daemon.getState(),

@@ -1,0 +1,143 @@
+name: Build Windows x64 installer
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows-x64:
+    name: Build Windows x64 installer
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout AeroVPN desktop workspace
+        uses: actions/checkout@v4
+        with:
+          path: AeroVPN-Desktop
+          submodules: recursive
+
+      - name: Checkout matching sing-box core source
+        uses: actions/checkout@v4
+        with:
+          repository: SagerNet/sing-box
+          ref: dfb80349bf5779ec0a3f834c9ec2794345bff8f0
+          path: sing-box
+          fetch-depth: 1
+          submodules: false
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.26.8
+          cache: true
+          cache-dependency-path: sing-box/go.sum
+
+      - name: Setup Rust 1.88 for native Windows module
+        uses: dtolnay/rust-toolchain@1.88.0
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Initialize MSVC build environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 26.7.0
+          cache: pnpm
+          cache-dependency-path: AeroVPN-Desktop/pnpm-lock.yaml
+
+      - name: Verify and stage signed Windows drivers
+        shell: pwsh
+        working-directory: AeroVPN-Desktop
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $source = 'ci-input/windows/x64'
+          $destination = 'bin/windows/x64'
+          New-Item -ItemType Directory -Path $destination -Force | Out-Null
+          Get-ChildItem -LiteralPath $source -File | Copy-Item -Destination $destination -Force
+          $expected = @{
+            'WinDivert64.sys' = '8DA085332782708D8767BCACE5327A6EC7283C17CFB85E40B03CD2323A90DDC2'
+            'VBoxUSB.sys' = '4E60921286307172FD42888CC4855F01CDB5B7BD7A71EEBBA2636093D8742732'
+            'VBoxUSB.inf' = '21137C65E8856C77414C928D776CC01BAEDD4B7919DD6224A5B715F85A76DF06'
+            'VBoxUSB.cat' = 'BB74EDB4AE22B1923AD85E89B119DEEB0103CF124F3C0AEAEBF91D21D16712BA'
+            'VBoxUSBMon.sys' = '9EB9D512E13C8747CEE74057AA6491CB22550F46A7917F03B8EDDFA8B0D78307'
+            'usbip2_ude.sys' = '51DB440065393E588A6B2585508C50EB3E1510B7B06D9AFA6C5BDE583751EA7D'
+            'usbip2_ude.inf' = '00A1DBFE02C0BBBED38B6E1C81EF0A6DCFE23FE39B07628592167383F7656256'
+            'usbip2_ude.cat' = 'A1FDD6612242E14C71D33A3693F3010B1F1ACCB9F6922F0B12543DC5C0217E87'
+            'usbip2_filter.sys' = 'C290299FF4D0F6A597DB5CE03E15B29A5349CDCE7C587EBFBD9ECAECA04F73ED'
+            'usbip2_filter.inf' = 'A149B941D124B9E2F4C503D8AF0C1FDB6907480D372D34B4F76D7452648466A2'
+            'usbip2_filter.cat' = '02A95969BA033DED3BF9A8C136551697D097DA076C8886630145EF8D39A1DD33'
+          }
+          foreach ($entry in $expected.GetEnumerator()) {
+            $path = Join-Path $destination $entry.Key
+            if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+              throw "Missing required driver file: $($entry.Key)"
+            }
+            $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $path).Hash
+            if ($actual -ne $entry.Value) {
+              throw "SHA-256 mismatch for $($entry.Key)"
+            }
+            if ($entry.Key.EndsWith('.sys') -or $entry.Key.EndsWith('.cat')) {
+              $signature = Get-AuthenticodeSignature -LiteralPath $path
+              if ($signature.Status -ne 'Valid') {
+                throw "Invalid Authenticode signature for $($entry.Key): $($signature.Status)"
+              }
+            }
+          }
+
+      - name: Create short-lived code-signing certificate
+        shell: pwsh
+        working-directory: AeroVPN-Desktop
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $password = [Guid]::NewGuid().ToString('N')
+          $securePassword = ConvertTo-SecureString -String $password -Force -AsPlainText
+          $certificate = New-SelfSignedCertificate -Type CodeSigningCert -Subject 'CN=Temporary GitHub Actions Build' -CertStoreLocation 'Cert:\CurrentUser\My' -KeyAlgorithm RSA -KeyLength 2048 -HashAlgorithm SHA256 -KeyExportPolicy Exportable -NotAfter (Get-Date).AddDays(2)
+          $certificatePath = Join-Path $env:RUNNER_TEMP 'sing-box-ci-signing.pfx'
+          Export-PfxCertificate -Cert $certificate -FilePath $certificatePath -Password $securePassword | Out-Null
+          $configuration = @{ windows = @{ certificateFile = $certificatePath; certificatePassword = $password } } | ConvertTo-Json -Compress
+          [System.IO.File]::WriteAllText((Join-Path (Get-Location) 'signing.local.json'), $configuration, [System.Text.UTF8Encoding]::new($false))
+          "CI_SIGNING_THUMBPRINT=$($certificate.Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Install dependencies and package current x64 client
+        shell: pwsh
+        working-directory: AeroVPN-Desktop
+        run: |
+          $ErrorActionPreference = 'Stop'
+          pnpm install --frozen-lockfile
+          if ($LASTEXITCODE -ne 0) { throw "pnpm install exited with $LASTEXITCODE" }
+          pnpm package:win x64
+          if ($LASTEXITCODE -ne 0) { throw "pnpm package:win exited with $LASTEXITCODE" }
+          $artifacts = @(Get-ChildItem -LiteralPath release -Filter 'SFW-*-x64.exe' -File)
+          if ($artifacts.Count -ne 1) { throw "Expected one x64 installer, found $($artifacts.Count)" }
+          Get-Item $artifacts[0].FullName | Select-Object FullName, Length
+          Get-AuthenticodeSignature $artifacts[0].FullName | Select-Object Status, @{Name='Signer';Expression={$_.SignerCertificate.Subject}}
+
+      - name: Remove temporary signing material
+        if: always()
+        shell: pwsh
+        working-directory: AeroVPN-Desktop
+        run: |
+          Remove-Item -LiteralPath 'signing.local.json' -Force -ErrorAction SilentlyContinue
+          Remove-Item -LiteralPath (Join-Path $env:RUNNER_TEMP 'sing-box-ci-signing.pfx') -Force -ErrorAction SilentlyContinue
+          if ($env:CI_SIGNING_THUMBPRINT) {
+            Remove-Item -LiteralPath "Cert:\CurrentUser\My\$env:CI_SIGNING_THUMBPRINT" -Force -ErrorAction SilentlyContinue
+          }
+
+      - name: Upload Windows x64 installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: sing-box-desktop-win-x64
+          path: AeroVPN-Desktop/release/SFW-*-x64.exe
+          if-no-files-found: error
+          retention-days: 30

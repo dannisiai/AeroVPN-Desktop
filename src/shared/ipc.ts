@@ -58,6 +58,76 @@ export const SERVERS_CALL = "servers:call";
 export const PREFERENCES_CALL = "preferences:call";
 export const PREFERENCES_CHANGED = "preferences:changed";
 export const PREFERENCES_SNAPSHOT = "preferences:snapshot";
+export const AERO_AUTH_CALL = "aerovpn-auth:call";
+
+export interface AeroAccountSnapshot {
+  email: string;
+  plan: {
+    name: string;
+    status: string;
+    expiresAt: number;
+    maxDevices: number;
+    currentDevices: number;
+    trafficGb: number | null;
+    trafficUsedGb: number | null;
+  } | null;
+}
+
+export interface AeroRegionCitySnapshot {
+  id: string;
+  name: string;
+  latencyMs: number;
+  loadPercent: number;
+  features: string[];
+}
+
+export interface AeroRegionSnapshot {
+  id: string;
+  name: string;
+  code: string;
+  flagEmoji: string;
+  recommended: boolean;
+  cities: AeroRegionCitySnapshot[];
+}
+
+export interface AeroConnectionSnapshot {
+  sessionId: string;
+  regionId: string;
+  cityId: string;
+  cityName: string;
+  countryName: string;
+  countryCode: string;
+  protocol: string;
+  expiresAt: number;
+}
+
+export interface AeroConnectSessionSnapshot {
+  sessionId: string;
+  deviceId: string;
+  regionId: string;
+  protocol: string;
+  issuedAt: number;
+  expiresAt: number;
+  revoked: boolean;
+  currentDevice: boolean;
+}
+
+export interface AeroAuthBridge {
+  restore(): Promise<AeroAccountSnapshot | null>;
+  sendVerificationCode(email: string): Promise<void>;
+  register(email: string, password: string, code: string): Promise<void>;
+  login(email: string, password: string): Promise<AeroAccountSnapshot>;
+  forgotPassword(email: string): Promise<void>;
+  resetPassword(email: string, code: string, newPassword: string): Promise<void>;
+  refreshAccount(): Promise<AeroAccountSnapshot>;
+  getRegions(): Promise<AeroRegionSnapshot[]>;
+  activeConnection(): Promise<AeroConnectionSnapshot | null>;
+  connect(regionId: string, cityId: string): Promise<AeroConnectionSnapshot>;
+  disconnect(): Promise<void>;
+  listConnectSessions(): Promise<AeroConnectSessionSnapshot[]>;
+  revokeConnectSession(sessionId: string): Promise<void>;
+  logout(): Promise<void>;
+}
 
 export const TERMINAL_WINDOW_OPEN = "terminal:window-open";
 export const TERMINAL_WINDOW_CLOSE = "terminal:window-close";
@@ -438,6 +508,7 @@ export interface AppBridge {
 
 export interface DesktopBridge {
   platform: string;
+  managedMode: boolean;
   daemon: DaemonBridge;
   setup: SetupBridge;
   core: CoreBridge;
@@ -445,6 +516,7 @@ export interface DesktopBridge {
   profiles: ProfilesBridge;
   servers: ServersBridge;
   preferences: PreferencesBridge;
+  auth: AeroAuthBridge;
   terminal: TerminalBridge;
   profileEditor: ProfileEditorBridge;
   openConnectBrowser: OpenConnectBrowserBridge;

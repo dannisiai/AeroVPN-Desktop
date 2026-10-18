@@ -5,6 +5,7 @@ import {
   APP_CALL,
   APP_NAVIGATE,
   APP_TITLE_BAR_OVERLAY,
+  AERO_AUTH_CALL,
   CORE_CALL,
   DAEMON_RETRY,
   DAEMON_STATE_CHANGED,
@@ -59,6 +60,7 @@ import type {
   TaildropSendFile,
   UpdatesState,
 } from "../shared/ipc";
+import { AERO_MANAGED_MODE } from "../shared/appPolicy";
 
 async function callResult<T>(channel: string, method: string, ...callArguments: unknown[]): Promise<T> {
   const result = (await ipcRenderer.invoke(channel, method, ...callArguments)) as ProfilesResult;
@@ -107,6 +109,7 @@ ipcRenderer.on(UPDATES_PRESENT, () => {
 
 const bridge: DesktopBridge = {
   platform: process.platform,
+  managedMode: AERO_MANAGED_MODE,
   daemon: {
     unary: (service, method, header, request) =>
       ipcRenderer.invoke(DAEMON_UNARY, service, method, header, request),
@@ -205,6 +208,22 @@ const bridge: DesktopBridge = {
   servers: {
     load: () => callServers("load"),
     save: (state) => callServers("save", state),
+  },
+  auth: {
+    restore: () => callResult(AERO_AUTH_CALL, "restore"),
+    sendVerificationCode: (email) => callResult(AERO_AUTH_CALL, "sendVerificationCode", email),
+    register: (email, password, code) => callResult(AERO_AUTH_CALL, "register", email, password, code),
+    login: (email, password) => callResult(AERO_AUTH_CALL, "login", email, password),
+    forgotPassword: (email) => callResult(AERO_AUTH_CALL, "forgotPassword", email),
+    resetPassword: (email, code, newPassword) => callResult(AERO_AUTH_CALL, "resetPassword", email, code, newPassword),
+    refreshAccount: () => callResult(AERO_AUTH_CALL, "refreshAccount"),
+    getRegions: () => callResult(AERO_AUTH_CALL, "getRegions"),
+    activeConnection: () => callResult(AERO_AUTH_CALL, "activeConnection"),
+    connect: (regionId, cityId) => callResult(AERO_AUTH_CALL, "connect", regionId, cityId),
+    disconnect: () => callResult(AERO_AUTH_CALL, "disconnect"),
+    listConnectSessions: () => callResult(AERO_AUTH_CALL, "listConnectSessions"),
+    revokeConnectSession: (sessionId) => callResult(AERO_AUTH_CALL, "revokeConnectSession", sessionId),
+    logout: () => callResult(AERO_AUTH_CALL, "logout"),
   },
   preferences: {
     initial: ipcRenderer.sendSync(PREFERENCES_SNAPSHOT) as Record<string, unknown>,

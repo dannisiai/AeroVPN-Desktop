@@ -1,8 +1,29 @@
-# sing-box-for-desktop
+# AeroVPN Desktop
 
-Experimental Windows client for sing-box, the universal proxy platform.
+This public fork builds the Windows AeroVPN client from the current desktop
+workspace. It is based on [SagerNet/sing-box-for-desktop](https://github.com/SagerNet/sing-box-for-desktop)
+and uses the companion [AeroVPN-Dashboard](https://github.com/dannisiai/AeroVPN-Dashboard)
+repository for its desktop interface.
 
-Linux support is on the way.
+The client adds AeroVPN account sign-in and server-managed connection handling.
+The API endpoint is defined in `src/main/aeroAuth.ts`; access tokens are kept
+in Windows secure storage.
+
+## Build a Windows installer on GitHub
+
+Open **Actions**, choose **Build Windows x64 installer**, and select **Run
+workflow**. The job checks out this repository and its dashboard submodule,
+builds the sing-box daemon from the pinned upstream source revision, and uploads
+the x64 NSIS installer as a 30-day artifact.
+
+The `ci-input/windows/x64` folder contains the signed third-party Windows
+drivers needed by the installer. Their versions, sources, checksums, and license
+references are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+## Upstream project
+
+The upstream project is an experimental Windows client for sing-box, the
+universal proxy platform. Linux support is on the way.
 
 ## License
 

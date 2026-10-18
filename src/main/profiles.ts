@@ -5,6 +5,7 @@ import { basename, join } from "node:path";
 
 import { ServiceStatus_Type } from "../shared/gen/daemon/started_service_pb";
 import { ProfileContent_Type } from "../shared/gen/experimental/boxdd/desktop_service_pb";
+import { AERO_MANAGED_MODE } from "../shared/appPolicy";
 import { PROFILES_CALL, PROFILES_CHANGED } from "../shared/ipc";
 import type {
   ProfileCreate,
@@ -15,7 +16,7 @@ import type {
   ProfilesState,
 } from "../shared/ipc";
 import { writeApplicationCacheFile } from "./appCache";
-import { desktopService } from "./daemon";
+import { desktopService, managedService } from "./daemon";
 import { Preference, settingsDatabase } from "./database";
 import { serviceStartOptions } from "./settings";
 import { userAgent } from "./userAgent";
@@ -339,6 +340,20 @@ async function startServiceWithContent(content: string): Promise<void> {
   });
 }
 
+export async function startAeroManagedConfig(content: string): Promise<void> {
+  await checkConfig(content);
+  await startServiceWithContent(content);
+}
+
+export async function stopAeroManagedService(): Promise<void> {
+  if (managedService === null) {
+    throw new Error("daemon is not available");
+  }
+  if (daemonState.status === ServiceStatus_Type.STARTED || daemonState.status === ServiceStatus_Type.STARTING) {
+    await managedService.stopService({});
+  }
+}
+
 async function reloadIfSelectedAndRunning(id: string): Promise<void> {
   if (selectedProfileId() !== id) {
     return;
@@ -432,6 +447,9 @@ function reconfigureAutoUpdate(): void {
   if (updateTimer !== null) {
     clearTimeout(updateTimer);
     updateTimer = null;
+  }
+  if (AERO_MANAGED_MODE) {
+    return;
   }
   const enabled = listProfiles().filter(
     (profile) => profile.type === "remote" && profile.autoUpdate,
@@ -693,6 +711,16 @@ export function registerProfiles() {
       method: string,
       ...callArguments: unknown[]
     ): Promise<ProfilesResult> => {
+      if (
+        AERO_MANAGED_MODE &&
+        method !== "list" &&
+        method !== "takeOverService"
+      ) {
+        return {
+          ok: false,
+          error: "Profile changes are managed by AeroVPN.",
+        };
+      }
       const handler = handlers[method];
       if (!handler) {
         return { ok: false, error: `unknown profiles method: ${method}` };
