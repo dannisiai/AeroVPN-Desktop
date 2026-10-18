@@ -91,6 +91,10 @@ english.AdditionalShortcuts=Additional shortcuts:
 chinesesimplified.AdditionalShortcuts=其他快捷方式：
 english.LaunchAeroVPN=Launch AeroVPN
 chinesesimplified.LaunchAeroVPN=启动 AeroVPN
+english.UnsafePreviousInstallDirectory=The previous AeroVPN installation directory is not protected by Windows. The installer selected the default protected directory:
+chinesesimplified.UnsafePreviousInstallDirectory=以前的 AeroVPN 安装目录不受 Windows 系统目录权限保护。安装程序已改用默认的受保护目录：
+english.UnsafeInstallDirectoryError=The selected AeroVPN directory is not under a Windows-protected location. Choose a protected directory such as:
+chinesesimplified.UnsafeInstallDirectoryError=所选 AeroVPN 目录不在 Windows 受保护的位置下。请改选受保护的目录，例如：
 
 [Files]
 Source: "{#AppDirectory}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -172,6 +176,20 @@ function RunPowerShell(const Parameters: String; var ResultCode: Integer): Boole
 begin
   Result := Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
     Parameters, '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+end;
+
+function IsSafeInstallationDirectory(const Directory: String): Boolean;
+var
+  ResultCode: Integer;
+  Parameters: String;
+  Started: Boolean;
+begin
+  Parameters := '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' +
+    ExpandConstant('{tmp}\installer-preflight.ps1') +
+    '" -InstallationDirectory "' + Directory +
+    '" -DaemonWorkingDirectory "' + DaemonDataDirectory + '"';
+  Started := RunPowerShell(Parameters, ResultCode);
+  Result := Started and (ResultCode = 0);
 end;
 
 function RunLegacyUninstaller(var ResultCode: Integer): Boolean;
@@ -261,11 +279,22 @@ begin
 end;
 
 procedure InitializeWizard;
+var
+  PreviousDirectory: String;
+  DefaultDirectory: String;
 begin
   ExtractTemporaryFile('installer-preflight.ps1');
   ExtractTemporaryFile('installer-service.ps1');
   if (LegacyInstallDirectory <> '') and DirExists(LegacyInstallDirectory) then
     WizardForm.DirEdit.Text := LegacyInstallDirectory;
+  PreviousDirectory := WizardForm.DirEdit.Text;
+  DefaultDirectory := ExpandConstant('{autopf}\AeroVPN');
+  if not IsSafeInstallationDirectory(PreviousDirectory) then begin
+    WizardForm.DirEdit.Text := DefaultDirectory;
+    if Uppercase(PreviousDirectory) <> Uppercase(DefaultDirectory) then
+      MsgBox(CustomMessage('UnsafePreviousInstallDirectory') + #13#10 + DefaultDirectory,
+        mbInformation, MB_OK);
+  end;
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;
@@ -279,7 +308,12 @@ begin
     Exit;
   end;
   if ResultCode <> 0 then begin
-    Result := 'AeroVPN could not safely prepare the selected installation and service directories. Error code: ' + IntToStr(ResultCode);
+    if ResultCode = 12 then
+      Result := CustomMessage('UnsafeInstallDirectoryError') + #13#10 +
+        ExpandConstant('{autopf}\AeroVPN') + #13#10#13#10 +
+        'Error code: ' + IntToStr(ResultCode)
+    else
+      Result := 'AeroVPN could not safely prepare the selected installation and service directories. Error code: ' + IntToStr(ResultCode);
     Exit;
   end;
 
