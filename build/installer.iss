@@ -140,19 +140,10 @@ begin
   DeleteFile(OutputPath);
 end;
 
-procedure SetAeroVPNRegistryView;
-begin
-  if IsWin64 then
-    SetRegView(64)
-  else
-    SetRegView(32);
-end;
-
 procedure ReadInstallationLayout(StrictLayout: Boolean);
 var
   LayoutVersion: Cardinal;
 begin
-  SetAeroVPNRegistryView;
   ApplicationDataDirectory := '';
   DaemonDataDirectory := ExpandConstant('{commonappdata}\sing-box-daemon');
   InstallationID := '';
@@ -350,7 +341,6 @@ begin
     if ResultCode <> 0 then
       RaiseException('AeroVPN service registration failed with code ' + IntToStr(ResultCode) + '.');
 
-    SetAeroVPNRegistryView;
     RegWriteDWordValue(HKLM, LayoutRegistryKey, 'LayoutVersion', 2);
     RegWriteStringValue(HKLM, LayoutRegistryKey, 'InstallationID', InstallationID);
     if ApplicationDataDirectory = '' then
