@@ -317,6 +317,16 @@ async function runWindowsElectronBuilder(
       "release",
       unpackedDirectory,
     );
+    const installerArchitecture = {
+      x64: 64,
+      x86: 32,
+      arm64: 128,
+    }[artifactArchitecture as "x64" | "x86" | "arm64"];
+    if (installerArchitecture === undefined) {
+      throw new Error(
+        `Unsupported Windows installer architecture: ${artifactArchitecture}`,
+      );
+    }
     if (!fs.existsSync(path.join(appDirectory, "AeroVPN.exe"))) {
       throw new Error(`Electron application directory is missing: ${appDirectory}`);
     }
@@ -329,7 +339,7 @@ async function runWindowsElectronBuilder(
       `/DAppDirectory=${appDirectory}`,
       `/DOutputDirectory=${installerOutputDirectory}`,
       `/DAppVersion=${readApplicationVersion()}`,
-      `/DArtifactArchitecture="${artifactArchitecture}"`,
+      `/DArtifactArchitecture=${installerArchitecture}`,
       ...(developmentPackage ? ["/DSetupSuffix=-dev"] : []),
       installerScript,
     ];

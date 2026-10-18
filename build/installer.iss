@@ -17,11 +17,11 @@
   #define SetupSuffix ""
 #endif
 
-#if ArtifactArchitecture == "x64"
+#if ArtifactArchitecture == 64
   #define ArchitectureLabel "x64"
-#elif ArtifactArchitecture == "x86"
+#elif ArtifactArchitecture == 32
   #define ArchitectureLabel "x86"
-#elif ArtifactArchitecture == "arm64"
+#elif ArtifactArchitecture == 128
   #define ArchitectureLabel "arm64"
 #else
   #error Unsupported Windows artifact architecture
