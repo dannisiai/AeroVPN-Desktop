@@ -24,7 +24,7 @@ jobs:
           repository: SagerNet/sing-box
           ref: dfb80349bf5779ec0a3f834c9ec2794345bff8f0
           path: sing-box
-          fetch-depth: 1
+          fetch-depth: 0
           submodules: false
 
       - name: Setup Go
