@@ -324,7 +324,7 @@ async function runWindowsElectronBuilder(
       `powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File ` +
       `$q${installerSigningScript}$q -FilePath $f`;
     const installerArguments = [
-      `--signtool=ci=${signToolCommand}`,
+      `/Sci=${signToolCommand}`,
       `/DSourceRoot=${repositoryRoot}`,
       `/DAppDirectory=${appDirectory}`,
       `/DOutputDirectory=${installerOutputDirectory}`,
