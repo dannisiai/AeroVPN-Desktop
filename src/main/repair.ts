@@ -12,8 +12,11 @@ const EXIT_CODE_LAUNCH_FAILED = 1224;
 const repairSupported = process.platform === "win32" || process.platform === "linux";
 
 export function daemonBinaryPath(): string {
+  const windowsBinaryName = app.isPackaged
+    ? "aerovpn-service.exe"
+    : "sing-box-daemon.exe";
   const binaryName =
-    process.platform === "win32" ? "sing-box-daemon.exe" : "sing-box-daemon";
+    process.platform === "win32" ? windowsBinaryName : "sing-box-daemon";
   if (app.isPackaged) {
     return join(process.resourcesPath, "daemon", binaryName);
   }
