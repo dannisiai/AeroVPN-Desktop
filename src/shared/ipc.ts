@@ -102,6 +102,13 @@ export interface AeroConnectionSnapshot {
 }
 
 export type AeroConnectionMode = "tun" | "system_proxy";
+export type AeroRoutingMode = "auto" | "global" | "direct";
+
+export interface AeroConnectionOptions {
+  localPort: number;
+  routingMode: AeroRoutingMode;
+  secureDns: boolean;
+}
 
 export interface AeroConnectSessionSnapshot {
   sessionId: string;
@@ -128,6 +135,7 @@ export interface AeroAuthBridge {
     regionId: string,
     cityId: string,
     mode?: AeroConnectionMode,
+    options?: AeroConnectionOptions,
   ): Promise<AeroConnectionSnapshot>;
   disconnect(): Promise<void>;
   listConnectSessions(): Promise<AeroConnectSessionSnapshot[]>;

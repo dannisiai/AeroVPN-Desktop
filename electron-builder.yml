@@ -14,8 +14,6 @@ electronFuses:
   onlyLoadAppFromAsar: true
   loadBrowserProcessSpecificV8Snapshot: false
   grantFileProtocolExtraPrivileges: true
-toolsets:
-  nsis: "1.2.1"
 directories:
   buildResources: build
   output: release
@@ -81,23 +79,7 @@ win:
     - from: bin/windows/${arch}/windows_share.node
       to: native/windows_share.node
   target:
-    - nsis
-  artifactName: AeroVPN-${version}-${env.SFW_ARCHITECTURE}.${ext}
-nsis:
-  oneClick: false
-  buildUniversalInstaller: false
-  differentialPackage: false
-  installerLanguages:
-    - en_US
-    - zh_CN
-    - zh_TW
-    - ru_RU
-  license: LICENSE
-  perMachine: true
-  allowToChangeInstallationDirectory: false
-  deleteAppDataOnUninstall: false
-  include: build/installer.nsh
-  artifactName: AeroVPN-${version}-${env.SFW_ARCHITECTURE}.${ext}
+    - dir
 linux:
   appId: io.nekohasekai.sfl
   syncDesktopName: true

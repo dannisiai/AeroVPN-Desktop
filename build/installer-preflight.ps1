@@ -1,6 +1,7 @@
 param(
     [Parameter(Mandatory = $true)][string]$InstallationDirectory,
     [string]$ApplicationDataDirectory,
+    [string]$DefaultApplicationDataDirectory,
     [string]$DaemonWorkingDirectory,
     [string]$InstallationID,
     [string]$ResultOutputPath,
@@ -10,7 +11,8 @@ param(
     [Alias("RepairInstallationAncestors")][switch]$RepairPathAncestors,
     [switch]$ResetWorkingDirectory,
     [switch]$PrepareApplicationDataDirectory,
-    [switch]$DeleteDataDirectories
+    [switch]$DeleteDataDirectories,
+    [switch]$DeleteDefaultApplicationDataDirectory
 )
 
 $ErrorActionPreference = "Stop"
@@ -790,6 +792,28 @@ try {
             Remove-WorkingDirectoryTree $ApplicationDataDirectory
             if (Test-Path -LiteralPath $ApplicationDataDirectory) {
                 Exit-Installer 26
+            }
+        }
+        if ($DeleteDefaultApplicationDataDirectory) {
+            $expectedDefaultApplicationDataDirectory = [System.IO.Path]::GetFullPath(
+                (Join-Path ([Environment]::GetFolderPath(
+                    [Environment+SpecialFolder]::ApplicationData
+                )) "sing-box")
+            )
+            if ([string]::IsNullOrWhiteSpace($DefaultApplicationDataDirectory) -or
+                -not [string]::Equals(
+                    [System.IO.Path]::GetFullPath($DefaultApplicationDataDirectory),
+                    $expectedDefaultApplicationDataDirectory,
+                    [System.StringComparison]::OrdinalIgnoreCase
+                ) -or
+                (Test-PathOverlap $InstallationDirectory $expectedDefaultApplicationDataDirectory) -or
+                (Test-PathOverlap $workingDirectory $expectedDefaultApplicationDataDirectory)) {
+                Write-InstallerOutput "The default application data directory does not match the current user's AeroVPN data directory."
+                Exit-Installer 29
+            }
+            Remove-WorkingDirectoryTree $expectedDefaultApplicationDataDirectory
+            if (Test-Path -LiteralPath $expectedDefaultApplicationDataDirectory) {
+                Exit-Installer 29
             }
         }
         Exit-Installer 0

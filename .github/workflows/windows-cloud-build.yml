@@ -62,6 +62,37 @@ jobs:
           cache: pnpm
           cache-dependency-path: AeroVPN-Desktop/pnpm-lock.yaml
 
+      - name: Install Inno Setup 6.7.3
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $installer = Join-Path $env:RUNNER_TEMP 'innosetup-6.7.3.exe'
+          $url = 'https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe'
+          Invoke-WebRequest -Uri $url -OutFile $installer
+          $signature = Get-AuthenticodeSignature -LiteralPath $installer
+          if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch 'Pyrsys') {
+            throw "Inno Setup installer signature validation failed: $($signature.Status) / $($signature.SignerCertificate.Subject)"
+          }
+          $process = Start-Process -FilePath $installer -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Inno Setup installer exited with $($process.ExitCode)" }
+          $programFilesX86 = [Environment]::GetEnvironmentVariable('ProgramFiles(x86)')
+          $compiler = Join-Path $programFilesX86 'Inno Setup 6/ISCC.exe'
+          if (-not (Test-Path -LiteralPath $compiler -PathType Leaf)) { throw 'Inno Setup 6 ISCC.exe was not installed.' }
+          "INNO_SETUP_COMPILER=$compiler" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Locate Windows SDK SignTool
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $programFilesX86 = [Environment]::GetEnvironmentVariable('ProgramFiles(x86)')
+          $kits = Join-Path $programFilesX86 'Windows Kits/10/bin'
+          $signTool = Get-ChildItem -LiteralPath $kits -Filter signtool.exe -File -Recurse |
+            Where-Object { $_.FullName -match '[\\/]x64[\\/]signtool\.exe$' } |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1
+          if ($null -eq $signTool) { throw 'Windows SDK x64 signtool.exe was not found.' }
+          $signTool.DirectoryName | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
       - name: Verify and stage signed Windows drivers
         shell: pwsh
         working-directory: AeroVPN-Desktop
@@ -109,7 +140,7 @@ jobs:
           $password = [Guid]::NewGuid().ToString('N')
           $securePassword = ConvertTo-SecureString -String $password -Force -AsPlainText
           $certificate = New-SelfSignedCertificate -Type CodeSigningCert -Subject 'CN=Temporary GitHub Actions Build' -CertStoreLocation 'Cert:\CurrentUser\My' -KeyAlgorithm RSA -KeyLength 2048 -HashAlgorithm SHA256 -KeyExportPolicy Exportable -NotAfter (Get-Date).AddDays(2)
-          $certificatePath = Join-Path $env:RUNNER_TEMP 'sing-box-ci-signing.pfx'
+          $certificatePath = Join-Path $env:RUNNER_TEMP 'aerovpn-ci-signing.pfx'
           Export-PfxCertificate -Cert $certificate -FilePath $certificatePath -Password $securePassword | Out-Null
           $configuration = @{ windows = @{ certificateFile = $certificatePath; certificatePassword = $password } } | ConvertTo-Json -Compress
           [System.IO.File]::WriteAllText((Join-Path (Get-Location) 'signing.local.json'), $configuration, [System.Text.UTF8Encoding]::new($false))
@@ -135,7 +166,7 @@ jobs:
         working-directory: AeroVPN-Desktop
         run: |
           Remove-Item -LiteralPath 'signing.local.json' -Force -ErrorAction SilentlyContinue
-          Remove-Item -LiteralPath (Join-Path $env:RUNNER_TEMP 'sing-box-ci-signing.pfx') -Force -ErrorAction SilentlyContinue
+          Remove-Item -LiteralPath (Join-Path $env:RUNNER_TEMP 'aerovpn-ci-signing.pfx') -Force -ErrorAction SilentlyContinue
           if ($env:CI_SIGNING_THUMBPRINT) {
             Remove-Item -LiteralPath "Cert:\CurrentUser\My\$env:CI_SIGNING_THUMBPRINT" -Force -ErrorAction SilentlyContinue
           }
