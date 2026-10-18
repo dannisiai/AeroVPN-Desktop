@@ -676,7 +676,7 @@ FunctionEnd
 !macroend
 
 !macro daemonExecutable OUT
-  StrCpy ${OUT} "$INSTDIR\resources\daemon\sing-box-daemon.exe"
+  StrCpy ${OUT} "$INSTDIR\resources\daemon\aerovpn-service.exe"
 !macroend
 
 !macro registerTaildropVerb

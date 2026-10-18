@@ -361,7 +361,7 @@ async function packageWindowsArchitecture(artifactArchitecture: string) {
   if (architecture === undefined) {
     throw new Error(`unknown Windows architecture: ${artifactArchitecture}`);
   }
-  const stagedPaths = ["sing-box-daemon.exe", "windows_share.node"];
+  const stagedPaths = ["aerovpn-service.exe", "windows_share.node"];
   if (architecture.includesCronet) {
     stagedPaths.push("libcronet.dll");
   }
@@ -429,7 +429,7 @@ async function packageWindows() {
         "bin",
         "windows",
         architecture.builderArchitectureName,
-        "sing-box-daemon.exe",
+        "aerovpn-service.exe",
       );
       await buildBoxdd("windows", architecture.goArchitecture, outputPath);
       verifyPortableExecutableArchitecture(

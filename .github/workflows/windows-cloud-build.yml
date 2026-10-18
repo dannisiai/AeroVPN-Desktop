@@ -27,6 +27,12 @@ jobs:
           fetch-depth: 0
           submodules: false
 
+      - name: Apply AeroVPN branding to Windows service
+        shell: pwsh
+        run: |
+          $script = Join-Path $env:GITHUB_WORKSPACE 'AeroVPN-Desktop/build/brand-windows-core.ps1'
+          & $script
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:

@@ -58,8 +58,8 @@ win:
       to: tray.ico
     - from: resources/trayStopped.ico
       to: trayStopped.ico
-    - from: bin/windows/${arch}/sing-box-daemon.exe
-      to: daemon/sing-box-daemon.exe
+    - from: bin/windows/${arch}/aerovpn-service.exe
+      to: daemon/aerovpn-service.exe
     - from: bin/windows/${arch}
       to: daemon
       filter:
