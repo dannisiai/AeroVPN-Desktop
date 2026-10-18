@@ -639,7 +639,19 @@ async function disconnect(): Promise<void> {
   if (session === null || session.connection === null) {
     return;
   }
-  await authorizedRequest("/v1/connect/revoke", "POST", { session_id: session.connection.sessionId });
+  try {
+    await authorizedRequest("/v1/connect/revoke", "POST", { session_id: session.connection.sessionId });
+  } catch (error) {
+    // Some deployed control planes do not yet expose this optional revocation route.
+    // The local tunnel is already stopped, so treat that specific 404 as disconnected.
+    if (
+      !(error instanceof AeroAuthError) ||
+      error.statusCode !== 404 ||
+      !/endpoint not found/i.test(error.message)
+    ) {
+      throw error;
+    }
+  }
   const latestSession = readSession();
   if (latestSession !== null) {
     writeSession({ ...latestSession, connection: null });

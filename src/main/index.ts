@@ -551,6 +551,8 @@ if (!singleInstanceLock) {
       handleProfileFile(profileFile);
     }
     queueTaildropSend(taildropPaths);
-    void runStartupUpdateCheck(() => sendWhenLoaded(UPDATES_PRESENT, null));
+    if (!AERO_MANAGED_MODE) {
+      void runStartupUpdateCheck(() => sendWhenLoaded(UPDATES_PRESENT, null));
+    }
   });
 }
