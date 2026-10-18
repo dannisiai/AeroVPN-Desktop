@@ -96,6 +96,7 @@ chinesesimplified.LaunchAeroVPN=启动 AeroVPN
 Source: "{#AppDirectory}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#SourceRoot}\build\installer-preflight.ps1"; DestDir: "{tmp}"; Flags: dontcopy
 Source: "{#SourceRoot}\build\installer-service.ps1"; DestDir: "{tmp}"; Flags: dontcopy
+Source: "{#SourceRoot}\build\installer-guid.ps1"; DestDir: "{tmp}"; Flags: dontcopy
 
 [Icons]
 Name: "{autoprograms}\AeroVPN"; Filename: "{app}\AeroVPN.exe"; WorkingDir: "{app}"
@@ -120,12 +121,23 @@ var
 
 function NewInstallationID: String;
 var
-  Guid: TGuid;
+  ResultCode: Integer;
+  Started: Boolean;
+  OutputPath: String;
+  Parameters: String;
+  IDContents: AnsiString;
 begin
-  if CreateGuid(Guid) then
-    Result := GUIDToString(Guid)
-  else
-    Result := '';
+  Result := '';
+  ExtractTemporaryFile('installer-guid.ps1');
+  OutputPath := ExpandConstant('{tmp}\aerovpn-installation-id.txt');
+  DeleteFile(OutputPath);
+  Parameters := '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' +
+    ExpandConstant('{tmp}\installer-guid.ps1') + '" -OutputPath "' + OutputPath + '"';
+  Started := Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
+    Parameters, '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  if Started and (ResultCode = 0) and LoadStringFromFile(OutputPath, IDContents) then
+    Result := Trim(String(IDContents));
+  DeleteFile(OutputPath);
 end;
 
 procedure SetAeroVPNRegistryView;
@@ -155,8 +167,12 @@ begin
   end;
   if DaemonDataDirectory = '' then
     DaemonDataDirectory := ExpandConstant('{commonappdata}\sing-box-daemon');
-  if InstallationID = '' then
-    InstallationID := NewInstallationID;
+  if InstallationID = '' then begin
+    if StrictLayout then
+      InstallationID := NewInstallationID
+    else
+      RaiseException('Could not read the AeroVPN installation identifier.');
+  end;
   if InstallationID = '' then
     RaiseException('Could not create an AeroVPN installation identifier.');
 end;
