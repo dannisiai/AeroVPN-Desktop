@@ -82,7 +82,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopShortcut}"; GroupDescription
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
-Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
+Name: "chinesesimplified"; MessagesFile: "{#SourceRoot}\build\inno-languages\ChineseSimplified.isl"
 
 [CustomMessages]
 english.CreateDesktopShortcut=Create a desktop shortcut
