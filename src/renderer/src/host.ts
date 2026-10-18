@@ -94,7 +94,7 @@ export function createDesktopHost(): DesktopHost {
       refreshAccount: () => bridge.auth.refreshAccount(),
       getRegions: () => bridge.auth.getRegions(),
       activeConnection: () => bridge.auth.activeConnection(),
-      connect: (regionId, cityId) => bridge.auth.connect(regionId, cityId),
+      connect: (regionId, cityId, mode) => bridge.auth.connect(regionId, cityId, mode),
       disconnect: () => bridge.auth.disconnect(),
       listConnectSessions: () => bridge.auth.listConnectSessions(),
       revokeConnectSession: (sessionId) => bridge.auth.revokeConnectSession(sessionId),

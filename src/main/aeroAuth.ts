@@ -1,6 +1,7 @@
 import { app, ipcMain, safeStorage } from "electron";
 import { randomBytes, randomUUID } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
+import { createServer } from "node:net";
 import { join } from "node:path";
 
 import { AERO_AUTH_CALL } from "../shared/ipc";
@@ -8,6 +9,7 @@ import { AERO_MANAGED_MODE } from "../shared/appPolicy";
 import type {
   AeroAccountSnapshot,
   AeroConnectSessionSnapshot,
+  AeroConnectionMode,
   AeroConnectionSnapshot,
   AeroRegionSnapshot,
   ProfilesResult,
@@ -471,9 +473,46 @@ function buildNodeOutbound(protocolValue: string, nodeSpec: Record<string, unkno
   throw new Error(`The server selected an unsupported protocol: ${protocolValue}`);
 }
 
-function buildConnectionConfig(protocol: string, nodeSpec: Record<string, unknown>): string {
+function buildConnectionConfig(
+  protocol: string,
+  nodeSpec: Record<string, unknown>,
+  mode: AeroConnectionMode,
+  systemProxyPort?: number,
+): string {
+  if (mode === "system_proxy" && systemProxyPort === undefined) {
+    throw new Error("A local port is required for System Proxy mode.");
+  }
   const proxy = buildNodeOutbound(protocol, nodeSpec);
   const directDomains = ["ethworldcupcoin.xyz", "aerovpn.com", "api.aerovpn.com", ".cn", ".xn--fiqs8s"];
+  const tunInbound: Record<string, unknown> = {
+    type: "tun",
+    tag: "tun-in",
+    interface_name: "tun0",
+    address: ["172.19.0.1/30", "fdfe:dcba:9876::1/126"],
+    auto_route: mode === "tun",
+    strict_route: mode === "tun",
+  };
+  const inbounds: Record<string, unknown>[] = mode === "system_proxy"
+    ? [
+        {
+          type: "mixed",
+          tag: "mixed-in",
+          listen: "127.0.0.1",
+          listen_port: systemProxyPort,
+        },
+        {
+          ...tunInbound,
+          platform: {
+            http_proxy: {
+              enabled: true,
+              server: "127.0.0.1",
+              server_port: systemProxyPort,
+              bypass_domain: ["<local>", "localhost", "127.*", "[::1]", ...directDomains],
+            },
+          },
+        },
+      ]
+    : [tunInbound];
   const config = {
     log: { level: "warn", timestamp: true },
     experimental: {
@@ -493,14 +532,7 @@ function buildConnectionConfig(protocol: string, nodeSpec: Record<string, unknow
       final: "remote-dns",
       strategy: "ipv4_only",
     },
-    inbounds: [{
-      type: "tun",
-      tag: "tun-in",
-      interface_name: "tun0",
-      address: ["172.19.0.1/30", "fdfe:dcba:9876::1/126"],
-      auto_route: true,
-      strict_route: true,
-    }],
+    inbounds,
     outbounds: [proxy, { type: "direct", tag: "direct" }, { type: "block", tag: "block" }],
     route: {
       auto_detect_interface: true,
@@ -518,9 +550,63 @@ function buildConnectionConfig(protocol: string, nodeSpec: Record<string, unknow
   return JSON.stringify(config);
 }
 
-async function connect(regionId: string, cityId: string): Promise<AeroConnectionSnapshot> {
+async function loopbackPortAvailable(port: number): Promise<boolean> {
+  const server = createServer();
+  return new Promise((resolve) => {
+    server.once("error", () => resolve(false));
+    server.listen(port, "127.0.0.1", () => {
+      server.close((error) => resolve(error === undefined));
+    });
+  });
+}
+
+async function availableSystemProxyPort(): Promise<number> {
+  if (await loopbackPortAvailable(2080)) {
+    return 2080;
+  }
+  const server = createServer();
+  return new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      if (address === null || typeof address === "string") {
+        server.close();
+        reject(new Error("Could not allocate a local system proxy port."));
+        return;
+      }
+      server.close((error) => {
+        if (error) {
+          reject(error);
+        } else if (address.port === 9090) {
+          void availableSystemProxyPort().then(resolve, reject);
+        } else {
+          resolve(address.port);
+        }
+      });
+    });
+  });
+}
+
+function parseConnectionMode(value: unknown): AeroConnectionMode {
+  if (value === undefined || value === null || value === "tun") {
+    return "tun";
+  }
+  if (value === "system_proxy") {
+    return "system_proxy";
+  }
+  throw new Error("Unsupported connection mode.");
+}
+
+async function connect(
+  regionId: string,
+  cityId: string,
+  mode: AeroConnectionMode,
+): Promise<AeroConnectionSnapshot> {
   if (!AERO_MANAGED_MODE) {
     throw new Error("Account-managed connections are only enabled in AeroVPN mode.");
+  }
+  if (mode === "system_proxy" && process.platform !== "win32") {
+    throw new Error("System Proxy mode is only available on Windows.");
   }
   const response = await authorizedRequest("/v1/connect", "POST", {
     region_id: requiredString(regionId, "Region"),
@@ -528,7 +614,8 @@ async function connect(regionId: string, cityId: string): Promise<AeroConnection
     protocol_preference: "auto",
   });
   const { connection, nodeSpec } = parseConnectionResponse(response);
-  const config = buildConnectionConfig(connection.protocol, nodeSpec);
+  const systemProxyPort = mode === "system_proxy" ? await availableSystemProxyPort() : undefined;
+  const config = buildConnectionConfig(connection.protocol, nodeSpec, mode, systemProxyPort);
   try {
     await startAeroManagedConfig(config);
   } catch (error) {
@@ -730,7 +817,8 @@ export function registerAeroAuth(): void {
           case "connect": {
             const regionId = requiredString(args[0], "Region");
             const cityId = requiredString(args[1], "City");
-            return { ok: true, value: await connect(regionId, cityId) };
+            const mode = parseConnectionMode(args[2]);
+            return { ok: true, value: await connect(regionId, cityId, mode) };
           }
           case "disconnect":
             await disconnect();

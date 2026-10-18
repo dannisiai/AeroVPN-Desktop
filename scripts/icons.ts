@@ -5,7 +5,7 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const applicationIconSource = path.resolve(repositoryRoot, "..", "sing-box", "docs", "assets", "icon.svg");
+const applicationIconSource = path.join(repositoryRoot, "dashboard", "src", "assets", "aero-logo.png");
 const statusBarIconSource = path.resolve(
   repositoryRoot,
   "..",
@@ -24,8 +24,12 @@ const linuxSizes = [512, 1024];
 // cover SM_CXSMICON at 100/125/150/200% DPI plus the 256 fallback
 // representation the NativeImage constructor reads.
 const windowsTraySizes = [16, 20, 24, 32, 48, 256];
+if (!fs.existsSync(applicationIconSource)) {
+  console.error(`missing AeroVPN logo ${applicationIconSource}`);
+  process.exit(1);
+}
+
 for (const [source, project] of [
-  [applicationIconSource, "https://github.com/SagerNet/sing-box"],
   [statusBarIconSource, "https://github.com/SagerNet/sing-box-for-apple"],
 ]) {
   if (!fs.existsSync(source)) {
@@ -74,34 +78,34 @@ function centerOnCanvas(glyphPath: string, canvasSize: number, outputPath: strin
   ]);
 }
 
-function renderApplicationIcon(size: number, workingDirectory: string, outputPath: string) {
-  const glyphPath = path.join(workingDirectory, `glyph-${size}.png`);
-  runChecked("rsvg-convert", [
-    "--width",
-    String(size),
-    "--height",
-    String(size),
-    "--keep-aspect-ratio",
-    "--output",
-    glyphPath,
+function renderApplicationIcon(size: number, outputPath: string) {
+  runChecked("magick", [
     applicationIconSource,
+    "-resize",
+    `${size}x${size}`,
+    "-background",
+    "none",
+    "-gravity",
+    "center",
+    "-extent",
+    `${size}x${size}`,
+    outputPath,
   ]);
-  centerOnCanvas(glyphPath, size, outputPath);
 }
 
-function renderColorTrayIcon(size: number, workingDirectory: string, outputPath: string) {
-  const glyphPath = path.join(workingDirectory, `tray-color-glyph-${size}.png`);
-  runChecked("rsvg-convert", [
-    "--width",
-    String(size),
-    "--height",
-    String(size),
-    "--keep-aspect-ratio",
-    "--output",
-    glyphPath,
+function renderColorTrayIcon(size: number, outputPath: string) {
+  runChecked("magick", [
     applicationIconSource,
+    "-resize",
+    `${size}x${size}`,
+    "-background",
+    "none",
+    "-gravity",
+    "center",
+    "-extent",
+    `${size}x${size}`,
+    outputPath,
   ]);
-  centerOnCanvas(glyphPath, size, outputPath);
 }
 
 // The source is an SF Symbols template sheet; Regular-M is the variant AppKit
@@ -180,11 +184,11 @@ function desaturateIcon(inputPath: string, outputPath: string) {
   runChecked("magick", [inputPath, "-modulate", "100,0", outputPath]);
 }
 
-const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "sing-box-icons-"));
+const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "aerovpn-icons-"));
 try {
   const windowsImages = windowsSizes.map((size) => {
     const imagePath = path.join(temporaryDirectory, `${size}.png`);
-    renderApplicationIcon(size, temporaryDirectory, imagePath);
+    renderApplicationIcon(size, imagePath);
     return imagePath;
   });
   runChecked("magick", [
@@ -196,7 +200,7 @@ try {
   const linuxDirectory = path.join(repositoryRoot, "resources", "icons");
   fs.mkdirSync(linuxDirectory, { recursive: true });
   for (const size of linuxSizes) {
-    renderApplicationIcon(size, temporaryDirectory, path.join(linuxDirectory, `${size}x${size}.png`));
+    renderApplicationIcon(size, path.join(linuxDirectory, `${size}x${size}.png`));
   }
   const resourcesDirectory = path.join(repositoryRoot, "resources");
   renderTrayIcons(
@@ -217,7 +221,7 @@ try {
   );
   const windowsTrayImages = windowsTraySizes.map((size) => {
     const imagePath = path.join(temporaryDirectory, `tray-color-${size}.png`);
-    renderColorTrayIcon(size, temporaryDirectory, imagePath);
+    renderColorTrayIcon(size, imagePath);
     return imagePath;
   });
   runChecked("magick", [
@@ -242,7 +246,7 @@ try {
     [48, "tray@2x.png"],
   ] as const) {
     const imagePath = path.join(resourcesDirectory, name);
-    renderColorTrayIcon(size, temporaryDirectory, imagePath);
+    renderColorTrayIcon(size, imagePath);
     desaturateIcon(imagePath, path.join(resourcesDirectory, name.replace("tray", "trayStopped")));
   }
   // electron-builder's assisted installer sidebar (MUI_WELCOMEFINISHPAGE_BITMAP,

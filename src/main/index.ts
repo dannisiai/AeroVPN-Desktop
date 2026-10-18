@@ -149,7 +149,11 @@ function createWindow(): BrowserWindow {
     titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "hidden",
     trafficLightPosition: process.platform === "darwin" ? { x: 18, y: 19 } : undefined,
     titleBarOverlay: titleBarOverlay(),
-    icon: process.platform === "linux" ? resourcePath("icons", "512x512.png") : undefined,
+    icon: process.platform === "win32"
+      ? resourcePath("icon.ico")
+      : process.platform === "linux"
+        ? resourcePath("icons", "512x512.png")
+        : undefined,
     webPreferences: {
       preload: join(import.meta.dirname, "../preload/index.cjs"),
       contextIsolation: true,

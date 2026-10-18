@@ -101,6 +101,8 @@ export interface AeroConnectionSnapshot {
   expiresAt: number;
 }
 
+export type AeroConnectionMode = "tun" | "system_proxy";
+
 export interface AeroConnectSessionSnapshot {
   sessionId: string;
   deviceId: string;
@@ -122,7 +124,11 @@ export interface AeroAuthBridge {
   refreshAccount(): Promise<AeroAccountSnapshot>;
   getRegions(): Promise<AeroRegionSnapshot[]>;
   activeConnection(): Promise<AeroConnectionSnapshot | null>;
-  connect(regionId: string, cityId: string): Promise<AeroConnectionSnapshot>;
+  connect(
+    regionId: string,
+    cityId: string,
+    mode?: AeroConnectionMode,
+  ): Promise<AeroConnectionSnapshot>;
   disconnect(): Promise<void>;
   listConnectSessions(): Promise<AeroConnectSessionSnapshot[]>;
   revokeConnectSession(sessionId: string): Promise<void>;
