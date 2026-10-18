@@ -524,7 +524,7 @@ function buildConnectionConfig(
     dns: {
       servers: [
         { type: "https", tag: "remote-dns", server: "1.1.1.1", detour: "proxy" },
-        { type: "https", tag: "local-dns", server: "223.5.5.5", detour: "direct" },
+        { type: "https", tag: "local-dns", server: "223.5.5.5" },
       ],
       rules: [
         { domain_suffix: directDomains, action: "route", server: "local-dns" },
