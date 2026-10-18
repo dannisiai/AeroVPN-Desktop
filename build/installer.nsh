@@ -240,17 +240,17 @@ FunctionEnd
   LangString customInstallation ${LANG_FARSI} "نصب سفارشی"
   LangString customInstallation ${LANG_RUSSIAN} "Выборочная установка"
 
-  LangString dataDirectoriesPageTitle ${LANG_ENGLISH} "Installation locations"
-  LangString dataDirectoriesPageTitle ${LANG_SIMPCHINESE} "安装位置"
-  LangString dataDirectoriesPageTitle ${LANG_TRADCHINESE} "安裝位置"
-  LangString dataDirectoriesPageTitle ${LANG_FARSI} "محل‌های نصب"
-  LangString dataDirectoriesPageTitle ${LANG_RUSSIAN} "Расположение установки"
+  LangString dataDirectoriesPageTitle ${LANG_ENGLISH} "AeroVPN installation location"
+  LangString dataDirectoriesPageTitle ${LANG_SIMPCHINESE} "AeroVPN 安装位置"
+  LangString dataDirectoriesPageTitle ${LANG_TRADCHINESE} "AeroVPN 安裝位置"
+  LangString dataDirectoriesPageTitle ${LANG_FARSI} "محل نصب AeroVPN"
+  LangString dataDirectoriesPageTitle ${LANG_RUSSIAN} "Место установки AeroVPN"
 
-  LangString dataDirectoriesPageSubtitle ${LANG_ENGLISH} "Choose the application installation and data directories."
-  LangString dataDirectoriesPageSubtitle ${LANG_SIMPCHINESE} "选择应用安装目录和数据目录。"
-  LangString dataDirectoriesPageSubtitle ${LANG_TRADCHINESE} "選擇應用程式安裝目錄和資料目錄。"
-  LangString dataDirectoriesPageSubtitle ${LANG_FARSI} "پوشه‌های نصب برنامه و داده را انتخاب کنید."
-  LangString dataDirectoriesPageSubtitle ${LANG_RUSSIAN} "Выберите каталоги установки приложения и данных."
+  LangString dataDirectoriesPageSubtitle ${LANG_ENGLISH} "Choose where AeroVPN will be installed. Data and service directories are managed automatically."
+  LangString dataDirectoriesPageSubtitle ${LANG_SIMPCHINESE} "选择 AeroVPN 的安装位置。数据目录和服务目录由程序自动管理。"
+  LangString dataDirectoriesPageSubtitle ${LANG_TRADCHINESE} "選擇 AeroVPN 的安裝位置。資料目錄和服務目錄由程式自動管理。"
+  LangString dataDirectoriesPageSubtitle ${LANG_FARSI} "محل نصب AeroVPN را انتخاب کنید. پوشه‌های داده و سرویس به‌طور خودکار مدیریت می‌شوند."
+  LangString dataDirectoriesPageSubtitle ${LANG_RUSSIAN} "Выберите место установки AeroVPN. Каталоги данных и службы управляются автоматически."
 
   LangString applicationDataDirectoryLabel ${LANG_ENGLISH} "Application data directory:"
   LangString applicationDataDirectoryLabel ${LANG_SIMPCHINESE} "应用数据目录："
@@ -276,11 +276,11 @@ FunctionEnd
   LangString browseDirectoryButton ${LANG_FARSI} "&مرور..."
   LangString browseDirectoryButton ${LANG_RUSSIAN} "&Обзор..."
 
-  LangString installationDirectoryLabel ${LANG_ENGLISH} "Application installation directory:"
-  LangString installationDirectoryLabel ${LANG_SIMPCHINESE} "应用安装目录："
-  LangString installationDirectoryLabel ${LANG_TRADCHINESE} "應用程式安裝目錄："
-  LangString installationDirectoryLabel ${LANG_FARSI} "پوشهٔ نصب برنامه:"
-  LangString installationDirectoryLabel ${LANG_RUSSIAN} "Каталог установки приложения:"
+  LangString installationDirectoryLabel ${LANG_ENGLISH} "AeroVPN installation directory:"
+  LangString installationDirectoryLabel ${LANG_SIMPCHINESE} "AeroVPN 安装目录："
+  LangString installationDirectoryLabel ${LANG_TRADCHINESE} "AeroVPN 安裝目錄："
+  LangString installationDirectoryLabel ${LANG_FARSI} "پوشهٔ نصب AeroVPN:"
+  LangString installationDirectoryLabel ${LANG_RUSSIAN} "Каталог установки AeroVPN:"
 
   LangString taildropVerb ${LANG_ENGLISH} "Send with Taildrop"
   LangString taildropVerb ${LANG_SIMPCHINESE} "使用 Taildrop 发送"
@@ -300,11 +300,11 @@ FunctionEnd
   LangString migrateExistingData ${LANG_FARSI} "انتقال داده‌های موجود هنگام تغییر پوشهٔ داده"
   LangString migrateExistingData ${LANG_RUSSIAN} "Перенести существующие данные при изменении каталога"
 
-  LangString migratingExistingData ${LANG_ENGLISH} "Migrating existing sing-box data..."
-  LangString migratingExistingData ${LANG_SIMPCHINESE} "正在迁移现有 sing-box 数据..."
-  LangString migratingExistingData ${LANG_TRADCHINESE} "正在遷移現有 sing-box 資料..."
-  LangString migratingExistingData ${LANG_FARSI} "در حال انتقال داده‌های موجود sing-box..."
-  LangString migratingExistingData ${LANG_RUSSIAN} "Перенос существующих данных sing-box..."
+  LangString migratingExistingData ${LANG_ENGLISH} "Migrating existing AeroVPN data..."
+  LangString migratingExistingData ${LANG_SIMPCHINESE} "正在迁移现有 AeroVPN 数据..."
+  LangString migratingExistingData ${LANG_TRADCHINESE} "正在遷移現有 AeroVPN 資料..."
+  LangString migratingExistingData ${LANG_FARSI} "در حال انتقال داده‌های موجود AeroVPN..."
+  LangString migratingExistingData ${LANG_RUSSIAN} "Перенос существующих данных AeroVPN..."
 
   LangString dataMigrationFailed ${LANG_ENGLISH} "Could not migrate the existing data (code $1). No old data was removed."
   LangString dataMigrationFailed ${LANG_SIMPCHINESE} "无法迁移现有数据（代码 $1）；旧数据未被删除。"
@@ -342,23 +342,23 @@ FunctionEnd
   LangString invalidApplicationDataDirectory ${LANG_FARSI} "پوشهٔ دادهٔ برنامه نامعتبر، ناامن یا پشتیبانی‌نشده است:$\r$\n$0"
   LangString invalidApplicationDataDirectory ${LANG_RUSSIAN} "Каталог данных приложения недопустим, небезопасен или не поддерживается:$\r$\n$0"
 
-  LangString stoppingService ${LANG_ENGLISH} "Stopping the sing-box service..."
-  LangString stoppingService ${LANG_SIMPCHINESE} "正在停止 sing-box 守护进程..."
-  LangString stoppingService ${LANG_TRADCHINESE} "正在停止 sing-box 守護程序..."
-  LangString stoppingService ${LANG_FARSI} "در حال توقف سرویس sing-box..."
-  LangString stoppingService ${LANG_RUSSIAN} "Остановка службы sing-box..."
+  LangString stoppingService ${LANG_ENGLISH} "Stopping the AeroVPN service..."
+  LangString stoppingService ${LANG_SIMPCHINESE} "正在停止 AeroVPN 守护进程..."
+  LangString stoppingService ${LANG_TRADCHINESE} "正在停止 AeroVPN 守護程序..."
+  LangString stoppingService ${LANG_FARSI} "در حال توقف سرویس AeroVPN..."
+  LangString stoppingService ${LANG_RUSSIAN} "Остановка службы AeroVPN..."
 
-  LangString checkingRunningApplication ${LANG_ENGLISH} "Checking for running sing-box applications..."
-  LangString checkingRunningApplication ${LANG_SIMPCHINESE} "正在检查运行中的 sing-box 应用..."
-  LangString checkingRunningApplication ${LANG_TRADCHINESE} "正在檢查執行中的 sing-box 應用程式..."
-  LangString checkingRunningApplication ${LANG_FARSI} "در حال بررسی برنامه‌های در حال اجرای sing-box..."
-  LangString checkingRunningApplication ${LANG_RUSSIAN} "Проверка запущенных приложений sing-box..."
+  LangString checkingRunningApplication ${LANG_ENGLISH} "Checking for running AeroVPN applications..."
+  LangString checkingRunningApplication ${LANG_SIMPCHINESE} "正在检查运行中的 AeroVPN 应用..."
+  LangString checkingRunningApplication ${LANG_TRADCHINESE} "正在檢查執行中的 AeroVPN 應用程式..."
+  LangString checkingRunningApplication ${LANG_FARSI} "در حال بررسی برنامه‌های در حال اجرای AeroVPN..."
+  LangString checkingRunningApplication ${LANG_RUSSIAN} "Проверка запущенных приложений AeroVPN..."
 
-  LangString closingApplication ${LANG_ENGLISH} "Closing sing-box..."
-  LangString closingApplication ${LANG_SIMPCHINESE} "正在关闭 sing-box 应用..."
-  LangString closingApplication ${LANG_TRADCHINESE} "正在關閉 sing-box 應用程式..."
-  LangString closingApplication ${LANG_FARSI} "در حال بستن sing-box..."
-  LangString closingApplication ${LANG_RUSSIAN} "Закрытие sing-box..."
+  LangString closingApplication ${LANG_ENGLISH} "Closing AeroVPN..."
+  LangString closingApplication ${LANG_SIMPCHINESE} "正在关闭 AeroVPN 应用..."
+  LangString closingApplication ${LANG_TRADCHINESE} "正在關閉 AeroVPN 應用程式..."
+  LangString closingApplication ${LANG_FARSI} "در حال بستن AeroVPN..."
+  LangString closingApplication ${LANG_RUSSIAN} "Закрытие AeroVPN..."
 
   LangString checkingInstallationLocations ${LANG_ENGLISH} "Checking installation locations..."
   LangString checkingInstallationLocations ${LANG_SIMPCHINESE} "正在检查安装位置..."
@@ -384,11 +384,11 @@ FunctionEnd
   LangString completingDataMigration ${LANG_FARSI} "در حال تکمیل انتقال داده‌ها..."
   LangString completingDataMigration ${LANG_RUSSIAN} "Завершение переноса данных..."
 
-  LangString stopServiceFailed ${LANG_ENGLISH} "Failed to stop the sing-box service."
-  LangString stopServiceFailed ${LANG_SIMPCHINESE} "无法停止 sing-box 守护进程。"
-  LangString stopServiceFailed ${LANG_TRADCHINESE} "無法停止 sing-box 守護程序。"
-  LangString stopServiceFailed ${LANG_FARSI} "توقف سرویس sing-box ناموفق بود."
-  LangString stopServiceFailed ${LANG_RUSSIAN} "Не удалось остановить службу sing-box."
+  LangString stopServiceFailed ${LANG_ENGLISH} "Failed to stop the AeroVPN service."
+  LangString stopServiceFailed ${LANG_SIMPCHINESE} "无法停止 AeroVPN 守护进程。"
+  LangString stopServiceFailed ${LANG_TRADCHINESE} "無法停止 AeroVPN 守護程序。"
+  LangString stopServiceFailed ${LANG_FARSI} "توقف سرویس AeroVPN ناموفق بود."
+  LangString stopServiceFailed ${LANG_RUSSIAN} "Не удалось остановить службу AeroVPN."
 
   LangString previousUninstallerFailed ${LANG_ENGLISH} "The previous uninstaller returned code $R0; continuing the upgrade."
   LangString previousUninstallerFailed ${LANG_SIMPCHINESE} "旧版本卸载程序返回代码 $R0；继续升级。"
@@ -408,17 +408,17 @@ FunctionEnd
   LangString unknownNativeArchitecture ${LANG_FARSI} "ناشناخته"
   LangString unknownNativeArchitecture ${LANG_RUSSIAN} "неизвестна"
 
-  LangString registeringService ${LANG_ENGLISH} "Registering the sing-box service..."
-  LangString registeringService ${LANG_SIMPCHINESE} "正在注册 sing-box 守护进程..."
-  LangString registeringService ${LANG_TRADCHINESE} "正在註冊 sing-box 守護程序..."
-  LangString registeringService ${LANG_FARSI} "در حال ثبت سرویس sing-box..."
-  LangString registeringService ${LANG_RUSSIAN} "Регистрация службы sing-box..."
+  LangString registeringService ${LANG_ENGLISH} "Registering the AeroVPN service..."
+  LangString registeringService ${LANG_SIMPCHINESE} "正在注册 AeroVPN 守护进程..."
+  LangString registeringService ${LANG_TRADCHINESE} "正在註冊 AeroVPN 守護程序..."
+  LangString registeringService ${LANG_FARSI} "در حال ثبت سرویس AeroVPN..."
+  LangString registeringService ${LANG_RUSSIAN} "Регистрация службы AeroVPN..."
 
-  LangString registerServiceFailed ${LANG_ENGLISH} "Failed to register the sing-box service (code $1)."
-  LangString registerServiceFailed ${LANG_SIMPCHINESE} "无法注册 sing-box 守护进程（代码 $1）。"
-  LangString registerServiceFailed ${LANG_TRADCHINESE} "無法註冊 sing-box 守護程序（代碼 $1）。"
-  LangString registerServiceFailed ${LANG_FARSI} "ثبت سرویس sing-box ناموفق بود (کد $1)."
-  LangString registerServiceFailed ${LANG_RUSSIAN} "Не удалось зарегистрировать службу sing-box (код $1)."
+  LangString registerServiceFailed ${LANG_ENGLISH} "Failed to register the AeroVPN service (code $1)."
+  LangString registerServiceFailed ${LANG_SIMPCHINESE} "无法注册 AeroVPN 守护进程（代码 $1）。"
+  LangString registerServiceFailed ${LANG_TRADCHINESE} "無法註冊 AeroVPN 守護程序（代碼 $1）。"
+  LangString registerServiceFailed ${LANG_FARSI} "ثبت سرویس AeroVPN ناموفق بود (کد $1)."
+  LangString registerServiceFailed ${LANG_RUSSIAN} "Не удалось зарегистрировать службу AeroVPN (код $1)."
 
   LangString serviceCommandNoDetails ${LANG_ENGLISH} "The service command produced no diagnostic output."
   LangString serviceCommandNoDetails ${LANG_SIMPCHINESE} "守护进程管理命令未产生诊断输出。"
@@ -426,11 +426,11 @@ FunctionEnd
   LangString serviceCommandNoDetails ${LANG_FARSI} "فرمان سرویس هیچ خروجی عیب‌یابی ایجاد نکرد."
   LangString serviceCommandNoDetails ${LANG_RUSSIAN} "Команда службы не вывела диагностических данных."
 
-  LangString copyingApplicationFiles ${LANG_ENGLISH} "Copying sing-box application files..."
-  LangString copyingApplicationFiles ${LANG_SIMPCHINESE} "正在复制 sing-box 应用程序文件..."
-  LangString copyingApplicationFiles ${LANG_TRADCHINESE} "正在複製 sing-box 應用程式檔案..."
-  LangString copyingApplicationFiles ${LANG_FARSI} "در حال کپی فایل‌های برنامهٔ sing-box..."
-  LangString copyingApplicationFiles ${LANG_RUSSIAN} "Копирование файлов приложения sing-box..."
+  LangString copyingApplicationFiles ${LANG_ENGLISH} "Copying AeroVPN application files..."
+  LangString copyingApplicationFiles ${LANG_SIMPCHINESE} "正在复制 AeroVPN 应用程序文件..."
+  LangString copyingApplicationFiles ${LANG_TRADCHINESE} "正在複製 AeroVPN 應用程式檔案..."
+  LangString copyingApplicationFiles ${LANG_FARSI} "در حال کپی فایل‌های برنامهٔ AeroVPN..."
+  LangString copyingApplicationFiles ${LANG_RUSSIAN} "Копирование файлов приложения AeroVPN..."
 
   LangString rollingBackInstallation ${LANG_ENGLISH} "The service setup failed. Removing the installed application..."
   LangString rollingBackInstallation ${LANG_SIMPCHINESE} "守护进程设置失败，正在移除已安装的应用程序..."
@@ -438,17 +438,17 @@ FunctionEnd
   LangString rollingBackInstallation ${LANG_FARSI} "راه‌اندازی سرویس ناموفق بود. برنامهٔ نصب‌شده در حال حذف است..."
   LangString rollingBackInstallation ${LANG_RUSSIAN} "Не удалось настроить службу. Удаление установленного приложения..."
 
-  LangString registerServiceFailedRolledBack ${LANG_ENGLISH} "Failed to register the sing-box service (code $1). The installed application was removed.$\r$\n$\r$\n$3"
-  LangString registerServiceFailedRolledBack ${LANG_SIMPCHINESE} "无法注册 sing-box 守护进程（代码 $1）。已移除安装的应用程序。$\r$\n$\r$\n$3"
-  LangString registerServiceFailedRolledBack ${LANG_TRADCHINESE} "無法註冊 sing-box 守護程序（代碼 $1）。已移除安裝的應用程式。$\r$\n$\r$\n$3"
-  LangString registerServiceFailedRolledBack ${LANG_FARSI} "ثبت سرویس sing-box ناموفق بود (کد $1). برنامهٔ نصب‌شده حذف شد.$\r$\n$\r$\n$3"
-  LangString registerServiceFailedRolledBack ${LANG_RUSSIAN} "Не удалось зарегистрировать службу sing-box (код $1). Установленное приложение удалено.$\r$\n$\r$\n$3"
+  LangString registerServiceFailedRolledBack ${LANG_ENGLISH} "Failed to register the AeroVPN service (code $1). The installed application was removed.$\r$\n$\r$\n$3"
+  LangString registerServiceFailedRolledBack ${LANG_SIMPCHINESE} "无法注册 AeroVPN 守护进程（代码 $1）。已移除安装的应用程序。$\r$\n$\r$\n$3"
+  LangString registerServiceFailedRolledBack ${LANG_TRADCHINESE} "無法註冊 AeroVPN 守護程序（代碼 $1）。已移除安裝的應用程式。$\r$\n$\r$\n$3"
+  LangString registerServiceFailedRolledBack ${LANG_FARSI} "ثبت سرویس AeroVPN ناموفق بود (کد $1). برنامهٔ نصب‌شده حذف شد.$\r$\n$\r$\n$3"
+  LangString registerServiceFailedRolledBack ${LANG_RUSSIAN} "Не удалось зарегистрировать службу AeroVPN (код $1). Установленное приложение удалено.$\r$\n$\r$\n$3"
 
-  LangString registerServiceFailedRollbackFailed ${LANG_ENGLISH} "Failed to register the sing-box service (code $1), and automatic removal failed (code $2).$\r$\n$\r$\n$3"
-  LangString registerServiceFailedRollbackFailed ${LANG_SIMPCHINESE} "无法注册 sing-box 守护进程（代码 $1），且自动移除失败（代码 $2）。$\r$\n$\r$\n$3"
-  LangString registerServiceFailedRollbackFailed ${LANG_TRADCHINESE} "無法註冊 sing-box 守護程序（代碼 $1），且自動移除失敗（代碼 $2）。$\r$\n$\r$\n$3"
-  LangString registerServiceFailedRollbackFailed ${LANG_FARSI} "ثبت سرویس sing-box ناموفق بود (کد $1) و حذف خودکار نیز ناموفق بود (کد $2).$\r$\n$\r$\n$3"
-  LangString registerServiceFailedRollbackFailed ${LANG_RUSSIAN} "Не удалось зарегистрировать службу sing-box (код $1), а автоматическое удаление завершилось ошибкой (код $2).$\r$\n$\r$\n$3"
+  LangString registerServiceFailedRollbackFailed ${LANG_ENGLISH} "Failed to register the AeroVPN service (code $1), and automatic removal failed (code $2).$\r$\n$\r$\n$3"
+  LangString registerServiceFailedRollbackFailed ${LANG_SIMPCHINESE} "无法注册 AeroVPN 守护进程（代码 $1），且自动移除失败（代码 $2）。$\r$\n$\r$\n$3"
+  LangString registerServiceFailedRollbackFailed ${LANG_TRADCHINESE} "無法註冊 AeroVPN 守護程序（代碼 $1），且自動移除失敗（代碼 $2）。$\r$\n$\r$\n$3"
+  LangString registerServiceFailedRollbackFailed ${LANG_FARSI} "ثبت سرویس AeroVPN ناموفق بود (کد $1) و حذف خودکار نیز ناموفق بود (کد $2).$\r$\n$\r$\n$3"
+  LangString registerServiceFailedRollbackFailed ${LANG_RUSSIAN} "Не удалось зарегистрировать службу AeroVPN (код $1), а автоматическое удаление завершилось ошибкой (код $2).$\r$\n$\r$\n$3"
 
   LangString unsafeInstallationDirectory ${LANG_ENGLISH} "The installation directory contains a reparse point or is not a normal directory:$\r$\n$INSTDIR"
   LangString unsafeInstallationDirectory ${LANG_SIMPCHINESE} "安装目录包含重解析点或不是普通目录：$\r$\n$INSTDIR"
@@ -534,11 +534,11 @@ FunctionEnd
   LangString unsafeInstallationConfirmationSubtitle ${LANG_FARSI} "برای ادامه باید تأیید زیر را انتخاب کنید."
   LangString unsafeInstallationConfirmationSubtitle ${LANG_RUSSIAN} "Чтобы продолжить, установите флажок подтверждения ниже."
 
-  LangString unsafeInstallationConfirmationWarning ${LANG_ENGLISH} "The installer and service will skip path security checks and permission hardening. This can allow another program to replace sing-box data or binaries and elevate privileges to SYSTEM."
-  LangString unsafeInstallationConfirmationWarning ${LANG_SIMPCHINESE} "安装程序和守护进程将跳过路径安全检查与权限加固。这可能允许其他程序替换 sing-box 数据或程序文件并提权到 SYSTEM。"
-  LangString unsafeInstallationConfirmationWarning ${LANG_TRADCHINESE} "安裝程式和守護程序將略過路徑安全檢查與權限強化。這可能允許其他程式取代 sing-box 資料或程式檔案並將權限提升至 SYSTEM。"
-  LangString unsafeInstallationConfirmationWarning ${LANG_FARSI} "نصب‌کننده و سرویس، بررسی امنیت مسیر و ایمن‌سازی مجوزها را نادیده می‌گیرند. این کار ممکن است به برنامه‌ای دیگر اجازه دهد داده‌ها یا فایل‌های sing-box را جایگزین کند و سطح دسترسی را به SYSTEM برساند."
-  LangString unsafeInstallationConfirmationWarning ${LANG_RUSSIAN} "Установщик и служба пропустят проверку безопасности путей и усиление разрешений. Другая программа сможет подменить данные или файлы sing-box и повысить привилегии до SYSTEM."
+  LangString unsafeInstallationConfirmationWarning ${LANG_ENGLISH} "The installer and service will skip path security checks and permission hardening. This can allow another program to replace AeroVPN data or binaries and elevate privileges to SYSTEM."
+  LangString unsafeInstallationConfirmationWarning ${LANG_SIMPCHINESE} "安装程序和守护进程将跳过路径安全检查与权限加固。这可能允许其他程序替换 AeroVPN 数据或程序文件并提权到 SYSTEM。"
+  LangString unsafeInstallationConfirmationWarning ${LANG_TRADCHINESE} "安裝程式和守護程序將略過路徑安全檢查與權限強化。這可能允許其他程式取代 AeroVPN 資料或程式檔案並將權限提升至 SYSTEM。"
+  LangString unsafeInstallationConfirmationWarning ${LANG_FARSI} "نصب‌کننده و سرویس، بررسی امنیت مسیر و ایمن‌سازی مجوزها را نادیده می‌گیرند. این کار ممکن است به برنامه‌ای دیگر اجازه دهد داده‌ها یا فایل‌های AeroVPN را جایگزین کند و سطح دسترسی را به SYSTEM برساند."
+  LangString unsafeInstallationConfirmationWarning ${LANG_RUSSIAN} "Установщик и служба пропустят проверку безопасности путей и усиление разрешений. Другая программа сможет подменить данные или файлы AeroVPN и повысить привилегии до SYSTEM."
 
   LangString unsafeInstallationAcknowledgement ${LANG_ENGLISH} "I understand and accept this security risk."
   LangString unsafeInstallationAcknowledgement ${LANG_SIMPCHINESE} "我理解并接受此安全风险。"
@@ -601,23 +601,23 @@ FunctionEnd
   LangString repairInstallationAncestorFailed ${LANG_RUSSIAN} "Не удалось исправить разрешения пути (код $1). Файлы приложения ещё не устанавливались."
 
   !ifndef BUILD_UNINSTALLER
-  LangString resetWorkingDirectoryPrompt ${LANG_ENGLISH} "The sing-box service data directory is invalid:$\r$\n$workingDirectory$\r$\nContinuing will delete this directory so the service can recreate it securely. Continue?"
-  LangString resetWorkingDirectoryPrompt ${LANG_SIMPCHINESE} "sing-box 守护进程数据目录无效：$\r$\n$workingDirectory$\r$\n继续安装将删除此目录，以便守护进程用安全权限重新创建。是否继续？"
-  LangString resetWorkingDirectoryPrompt ${LANG_TRADCHINESE} "sing-box 守護程序資料目錄無效：$\r$\n$workingDirectory$\r$\n繼續安裝將刪除此目錄，以便守護程序用安全權限重新建立。是否繼續？"
-  LangString resetWorkingDirectoryPrompt ${LANG_FARSI} "پوشهٔ دادهٔ سرویس sing-box نامعتبر است:$\r$\n$workingDirectory$\r$\nبا ادامه، این پوشه حذف می‌شود تا سرویس آن را با مجوزهای امن دوباره ایجاد کند. ادامه می‌دهید؟"
-  LangString resetWorkingDirectoryPrompt ${LANG_RUSSIAN} "Каталог данных службы sing-box недействителен:$\r$\n$workingDirectory$\r$\nПри продолжении каталог будет удалён, чтобы служба могла безопасно создать его заново. Продолжить?"
+  LangString resetWorkingDirectoryPrompt ${LANG_ENGLISH} "The AeroVPN service data directory is invalid:$\r$\n$workingDirectory$\r$\nContinuing will delete this directory so the service can recreate it securely. Continue?"
+  LangString resetWorkingDirectoryPrompt ${LANG_SIMPCHINESE} "AeroVPN 守护进程数据目录无效：$\r$\n$workingDirectory$\r$\n继续安装将删除此目录，以便守护进程用安全权限重新创建。是否继续？"
+  LangString resetWorkingDirectoryPrompt ${LANG_TRADCHINESE} "AeroVPN 守護程序資料目錄無效：$\r$\n$workingDirectory$\r$\n繼續安裝將刪除此目錄，以便守護程序用安全權限重新建立。是否繼續？"
+  LangString resetWorkingDirectoryPrompt ${LANG_FARSI} "پوشهٔ دادهٔ سرویس AeroVPN نامعتبر است:$\r$\n$workingDirectory$\r$\nبا ادامه، این پوشه حذف می‌شود تا سرویس آن را با مجوزهای امن دوباره ایجاد کند. ادامه می‌دهید؟"
+  LangString resetWorkingDirectoryPrompt ${LANG_RUSSIAN} "Каталог данных службы AeroVPN недействителен:$\r$\n$workingDirectory$\r$\nПри продолжении каталог будет удалён, чтобы служба могла безопасно создать его заново. Продолжить?"
 
-  LangString resettingWorkingDirectory ${LANG_ENGLISH} "Resetting the sing-box service data directory..."
-  LangString resettingWorkingDirectory ${LANG_SIMPCHINESE} "正在重置 sing-box 守护进程数据目录..."
-  LangString resettingWorkingDirectory ${LANG_TRADCHINESE} "正在重設 sing-box 守護程序資料目錄..."
-  LangString resettingWorkingDirectory ${LANG_FARSI} "در حال بازنشانی پوشهٔ دادهٔ سرویس sing-box..."
-  LangString resettingWorkingDirectory ${LANG_RUSSIAN} "Сброс каталога данных службы sing-box..."
+  LangString resettingWorkingDirectory ${LANG_ENGLISH} "Resetting the AeroVPN service data directory..."
+  LangString resettingWorkingDirectory ${LANG_SIMPCHINESE} "正在重置 AeroVPN 守护进程数据目录..."
+  LangString resettingWorkingDirectory ${LANG_TRADCHINESE} "正在重設 AeroVPN 守護程序資料目錄..."
+  LangString resettingWorkingDirectory ${LANG_FARSI} "در حال بازنشانی پوشهٔ دادهٔ سرویس AeroVPN..."
+  LangString resettingWorkingDirectory ${LANG_RUSSIAN} "Сброс каталога данных службы AeroVPN..."
 
-  LangString resetWorkingDirectoryFailed ${LANG_ENGLISH} "Could not reset the sing-box service data directory (code $1). No application files were installed."
-  LangString resetWorkingDirectoryFailed ${LANG_SIMPCHINESE} "无法重置 sing-box 守护进程数据目录（代码 $1）。尚未安装任何应用程序文件。"
-  LangString resetWorkingDirectoryFailed ${LANG_TRADCHINESE} "無法重設 sing-box 守護程序資料目錄（代碼 $1）。尚未安裝任何應用程式檔案。"
-  LangString resetWorkingDirectoryFailed ${LANG_FARSI} "بازنشانی پوشهٔ دادهٔ سرویس sing-box ممکن نشد (کد $1). هیچ فایل برنامه‌ای نصب نشد."
-  LangString resetWorkingDirectoryFailed ${LANG_RUSSIAN} "Не удалось сбросить каталог данных службы sing-box (код $1). Файлы приложения ещё не устанавливались."
+  LangString resetWorkingDirectoryFailed ${LANG_ENGLISH} "Could not reset the AeroVPN service data directory (code $1). No application files were installed."
+  LangString resetWorkingDirectoryFailed ${LANG_SIMPCHINESE} "无法重置 AeroVPN 守护进程数据目录（代码 $1）。尚未安装任何应用程序文件。"
+  LangString resetWorkingDirectoryFailed ${LANG_TRADCHINESE} "無法重設 AeroVPN 守護程序資料目錄（代碼 $1）。尚未安裝任何應用程式檔案。"
+  LangString resetWorkingDirectoryFailed ${LANG_FARSI} "بازنشانی پوشهٔ دادهٔ سرویس AeroVPN ممکن نشد (کد $1). هیچ فایل برنامه‌ای نصب نشد."
+  LangString resetWorkingDirectoryFailed ${LANG_RUSSIAN} "Не удалось сбросить каталог данных службы AeroVPN (код $1). Файлы приложения ещё не устанавливались."
   !endif
 
   LangString preflightFailed ${LANG_ENGLISH} "Could not validate the installation directories (code $1)."
@@ -626,23 +626,23 @@ FunctionEnd
   LangString preflightFailed ${LANG_FARSI} "اعتبارسنجی پوشه‌های نصب ممکن نشد (کد $1)."
   LangString preflightFailed ${LANG_RUSSIAN} "Не удалось проверить каталоги установки (код $1)."
 
-  LangString removingService ${LANG_ENGLISH} "Removing the sing-box service..."
-  LangString removingService ${LANG_SIMPCHINESE} "正在移除 sing-box 守护进程..."
-  LangString removingService ${LANG_TRADCHINESE} "正在移除 sing-box 守護程序..."
-  LangString removingService ${LANG_FARSI} "در حال حذف سرویس sing-box..."
-  LangString removingService ${LANG_RUSSIAN} "Удаление службы sing-box..."
+  LangString removingService ${LANG_ENGLISH} "Removing the AeroVPN service..."
+  LangString removingService ${LANG_SIMPCHINESE} "正在移除 AeroVPN 守护进程..."
+  LangString removingService ${LANG_TRADCHINESE} "正在移除 AeroVPN 守護程序..."
+  LangString removingService ${LANG_FARSI} "در حال حذف سرویس AeroVPN..."
+  LangString removingService ${LANG_RUSSIAN} "Удаление службы AeroVPN..."
 
-  LangString removeServiceFailed ${LANG_ENGLISH} "Failed to remove the sing-box service (code $1).$\r$\n$\r$\n$3"
-  LangString removeServiceFailed ${LANG_SIMPCHINESE} "无法移除 sing-box 守护进程（代码 $1）。$\r$\n$\r$\n$3"
-  LangString removeServiceFailed ${LANG_TRADCHINESE} "無法移除 sing-box 守護程序（代碼 $1）。$\r$\n$\r$\n$3"
-  LangString removeServiceFailed ${LANG_FARSI} "حذف سرویس sing-box ناموفق بود (کد $1).$\r$\n$\r$\n$3"
-  LangString removeServiceFailed ${LANG_RUSSIAN} "Не удалось удалить службу sing-box (код $1).$\r$\n$\r$\n$3"
+  LangString removeServiceFailed ${LANG_ENGLISH} "Failed to remove the AeroVPN service (code $1).$\r$\n$\r$\n$3"
+  LangString removeServiceFailed ${LANG_SIMPCHINESE} "无法移除 AeroVPN 守护进程（代码 $1）。$\r$\n$\r$\n$3"
+  LangString removeServiceFailed ${LANG_TRADCHINESE} "無法移除 AeroVPN 守護程序（代碼 $1）。$\r$\n$\r$\n$3"
+  LangString removeServiceFailed ${LANG_FARSI} "حذف سرویس AeroVPN ناموفق بود (کد $1).$\r$\n$\r$\n$3"
+  LangString removeServiceFailed ${LANG_RUSSIAN} "Не удалось удалить службу AeroVPN (код $1).$\r$\n$\r$\n$3"
 
-  LangString removingData ${LANG_ENGLISH} "Removing sing-box data..."
-  LangString removingData ${LANG_SIMPCHINESE} "正在移除 sing-box 数据..."
-  LangString removingData ${LANG_TRADCHINESE} "正在移除 sing-box 資料..."
-  LangString removingData ${LANG_FARSI} "در حال حذف داده‌های sing-box..."
-  LangString removingData ${LANG_RUSSIAN} "Удаление данных sing-box..."
+  LangString removingData ${LANG_ENGLISH} "Removing AeroVPN data..."
+  LangString removingData ${LANG_SIMPCHINESE} "正在移除 AeroVPN 数据..."
+  LangString removingData ${LANG_TRADCHINESE} "正在移除 AeroVPN 資料..."
+  LangString removingData ${LANG_FARSI} "در حال حذف داده‌های AeroVPN..."
+  LangString removingData ${LANG_RUSSIAN} "Удаление данных AeroVPN..."
 !macroend
 
 !macro setInstallationLayoutRegistryView
@@ -1086,52 +1086,6 @@ FunctionEnd
     Pop $installationDirectoryBrowseButton
     ${NSD_OnClick} $installationDirectoryBrowseButton browseInstallationDirectory
 
-    ${NSD_CreateCheckBox} 0u 38u 100% 12u "$(userIndependentApplicationData)"
-    Pop $userIndependentApplicationDataCheckbox
-    ${NSD_SetState} $userIndependentApplicationDataCheckbox $userIndependentApplicationData
-    ${NSD_OnClick} $userIndependentApplicationDataCheckbox updateApplicationDataDirectoryMode
-
-    StrCpy $0 56
-    ${NSD_CreateLabel} 0u $0u 100% 12u "$(applicationDataDirectoryLabel)"
-    Pop $1
-    IntOp $0 $0 + 16
-    ${if} $userIndependentApplicationData == ${BST_CHECKED}
-      StrCpy $1 $userApplicationDataDirectory
-    ${else}
-      StrCpy $1 $fixedApplicationDataDirectory
-    ${endif}
-    ${NSD_CreateDirRequest} 0u $0u 76% 13u "$1"
-    Pop $applicationDataDirectoryInput
-    IntOp $0 $0 - 1
-    ${NSD_CreateBrowseButton} 78% $0u 22% 15u "$(browseDirectoryButton)"
-    Pop $applicationDataDirectoryBrowseButton
-    ${NSD_OnClick} $applicationDataDirectoryBrowseButton browseApplicationDataDirectory
-    ${if} $userIndependentApplicationData == ${BST_CHECKED}
-      EnableWindow $applicationDataDirectoryInput 0
-      EnableWindow $applicationDataDirectoryBrowseButton 0
-    ${endif}
-
-    IntOp $0 $0 + 27
-    ${NSD_CreateLabel} 0u $0u 100% 12u "$(daemonDataDirectoryLabel)"
-    Pop $1
-    IntOp $0 $0 + 16
-    ${NSD_CreateDirRequest} 0u $0u 76% 13u "$daemonDataDirectory"
-    Pop $daemonDataDirectoryInput
-    IntOp $0 $0 - 1
-    ${NSD_CreateBrowseButton} 78% $0u 22% 15u "$(browseDirectoryButton)"
-    Pop $daemonDataDirectoryBrowseButton
-    ${NSD_OnClick} $daemonDataDirectoryBrowseButton browseDaemonDataDirectory
-
-    ${if} $hasInstallationLayout == 1
-    ${orif} $hasExistingInstallation == 1
-      IntOp $0 $0 + 23
-      ${NSD_CreateCheckBox} 0u $0u 100% 12u "$(migrateExistingData)"
-      Pop $migrateExistingDataCheckbox
-      ${NSD_SetState} $migrateExistingDataCheckbox $migrateExistingData
-      Push $migrateExistingDataCheckbox
-      Call expandInstallerToFitControl
-    ${endif}
-
     nsDialogs::Show
   FunctionEnd
 
@@ -1140,28 +1094,8 @@ FunctionEnd
     ${if} $INSTDIR == ""
       Abort
     ${endif}
-    ${NSD_GetState} $userIndependentApplicationDataCheckbox $userIndependentApplicationData
-    ${if} $userIndependentApplicationData == ${BST_CHECKED}
-      StrCpy $applicationDataDirectory ""
-    ${else}
-      ${NSD_GetText} $applicationDataDirectoryInput $applicationDataDirectory
-      ${if} $applicationDataDirectory == ""
-        StrCpy $0 ""
-        MessageBox MB_OK|MB_ICONSTOP "$(invalidApplicationDataDirectory)"
-        Abort
-      ${endif}
-      StrCpy $fixedApplicationDataDirectory $applicationDataDirectory
-    ${endif}
-    ${NSD_GetText} $daemonDataDirectoryInput $daemonDataDirectory
-    ${if} $daemonDataDirectory == ""
-      StrCpy $0 ""
-      MessageBox MB_OK|MB_ICONSTOP "$(invalidDaemonDataDirectory)"
-      Abort
-    ${endif}
-    ${if} $hasInstallationLayout == 1
-    ${orif} $hasExistingInstallation == 1
-      ${NSD_GetState} $migrateExistingDataCheckbox $migrateExistingData
-    ${endif}
+    ; Keep data and service locations at their secure defaults. Existing layouts
+    ; loaded during initialization are preserved for upgrades and reinstalls.
     StrCpy $workingDirectory $daemonDataDirectory
   FunctionEnd
 

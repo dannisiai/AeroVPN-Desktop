@@ -37,7 +37,7 @@ try {
       $layoutVersion = $installationKey.GetValue("LayoutVersion", $null)
       if ($null -ne $layoutVersion) {
         if ([int]$layoutVersion -ne 2) {
-          throw "Unsupported sing-box installation layout version: $layoutVersion"
+          throw "Unsupported AeroVPN installation layout version: $layoutVersion"
         }
         $configuredApplicationDataDirectory = $installationKey.GetValue(
           "ApplicationDataDirectory",
@@ -52,7 +52,7 @@ try {
         if ($configuredApplicationDataDirectory -isnot [string] -or
             $configuredDaemonDataDirectory -isnot [string] -or
             [string]::IsNullOrWhiteSpace($configuredDaemonDataDirectory)) {
-          throw "The sing-box installation layout is invalid."
+          throw "The AeroVPN installation layout is invalid."
         }
         if (-not [string]::IsNullOrWhiteSpace($configuredApplicationDataDirectory)) {
           $applicationDataDirectory = $configuredApplicationDataDirectory

@@ -1,7 +1,7 @@
 import { preferredLocale } from "./locale";
 
-const applicationName = process.platform === "linux" ? "SFL" : "SFW";
+const applicationName = "AeroVPN";
 
 export function userAgent(): string {
-  return `${applicationName} (sing-box ${__APP_VERSION__}; language ${preferredLocale().replaceAll("-", "_")})`;
+  return `${applicationName} (${__APP_VERSION__}; language ${preferredLocale().replaceAll("-", "_")})`;
 }

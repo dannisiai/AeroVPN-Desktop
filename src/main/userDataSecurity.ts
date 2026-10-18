@@ -48,14 +48,14 @@ function Set-BoxAccessControl([string] $targetPath, [bool] $directory) {
 
 $root = Get-Item -LiteralPath $path -Force
 if (($root.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
-  throw "The sing-box user data directory is a reparse point"
+  throw "The AeroVPN user data directory is a reparse point"
 }
 
 if ($secureExistingData) {
   $items = @(Get-ChildItem -LiteralPath $path -Force -Recurse)
   foreach ($item in $items) {
     if (($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
-      throw "The sing-box user data directory contains a reparse point"
+      throw "The AeroVPN user data directory contains a reparse point"
     }
   }
   foreach ($item in ($items | Sort-Object { $_.FullName.Length } -Descending)) {
@@ -81,7 +81,7 @@ function secureLinuxApplicationUserData(userDataPath: string): void {
     (rootInfo.mode & 0o077) !== 0
   ) {
     throw new Error(
-      "the sing-box user data path is not a private directory owned by the current user",
+      "the AeroVPN user data path is not a private directory owned by the current user",
     );
   }
 }
@@ -128,7 +128,7 @@ export function secureApplicationUserData(userDataPath: string): void {
   if (result.status !== 0) {
     throw new Error(
       result.stderr.trim() ||
-        "failed to secure the sing-box user data directory",
+        "failed to secure the AeroVPN user data directory",
     );
   }
   writeFileSync(markerPath, "");

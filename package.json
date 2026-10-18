@@ -1,9 +1,9 @@
 {
-  "name": "sing-box",
-  "desktopName": "sing-box.desktop",
+  "name": "aerovpn-desktop",
+  "desktopName": "AeroVPN.desktop",
   "private": true,
-  "description": "Windows and Linux client for sing-box, the universal proxy platform.",
-  "homepage": "https://github.com/sagernet/sing-box-for-desktop",
+  "description": "AeroVPN desktop client.",
+  "homepage": "https://github.com/dannisiai/AeroVPN-Desktop",
   "license": "GPL-3.0-or-later",
   "author": {
     "name": "SagerNet",
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SagerNet/sing-box-for-desktop.git"
+    "url": "git+https://github.com/dannisiai/AeroVPN-Desktop.git"
   },
   "type": "module",
   "packageManager": "pnpm@11.13.0",

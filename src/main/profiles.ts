@@ -651,7 +651,7 @@ const handlers: Record<
     data: Uint8Array;
   } | null> {
     const result = await dialog.showOpenDialog({
-      filters: [{ name: "sing-box profile", extensions: ["json", "bpf"] }],
+      filters: [{ name: "AeroVPN profile", extensions: ["json", "bpf"] }],
       properties: ["openFile"],
     });
     if (result.canceled || result.filePaths.length === 0) {
@@ -674,7 +674,7 @@ const handlers: Record<
     const profile = findProfile(id);
     const result = await dialog.showSaveDialog({
       defaultPath: `${profile.name}.json`,
-      filters: [{ name: "sing-box configuration", extensions: ["json"] }],
+      filters: [{ name: "AeroVPN configuration", extensions: ["json"] }],
     });
     if (result.canceled || !result.filePath) {
       return false;
@@ -687,7 +687,7 @@ const handlers: Record<
     const profile = findProfile(id);
     const result = await dialog.showSaveDialog({
       defaultPath: `${profile.name}.bpf`,
-      filters: [{ name: "sing-box profile", extensions: ["bpf"] }],
+      filters: [{ name: "AeroVPN profile", extensions: ["bpf"] }],
     });
     if (result.canceled || !result.filePath) {
       return false;

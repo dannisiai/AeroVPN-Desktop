@@ -63,14 +63,15 @@ import {
 } from "./windowState";
 
 let handlingFatalError = false;
+app.setName("AeroVPN");
 
 function fatalErrorMessage(error: unknown, capture: RuntimeCrashCaptureResult): string {
   const errorObject = error instanceof Error ? error : new Error(String(error));
   const reason = `${errorObject.name}: ${errorObject.message}`;
   if (capture.reportPath !== null) {
-    return `sing-box stopped unexpectedly.\n\n${reason}\n\nCrash report:\n${capture.reportPath}`;
+    return `AeroVPN stopped unexpectedly.\n\n${reason}\n\nCrash report:\n${capture.reportPath}`;
   }
-  return `sing-box stopped unexpectedly.\n\n${reason}\n\nThe crash report could not be saved:\n${capture.saveError ?? "unknown error"}`;
+  return `AeroVPN stopped unexpectedly.\n\n${reason}\n\nThe crash report could not be saved:\n${capture.saveError ?? "unknown error"}`;
 }
 
 function handleFatal(kind: string, error: unknown): never {
@@ -81,7 +82,7 @@ function handleFatal(kind: string, error: unknown): never {
   const capture = captureRuntimeCrash(kind, error);
   const message = fatalErrorMessage(error, capture);
   try {
-    dialog.showErrorBox("sing-box", message);
+    dialog.showErrorBox("AeroVPN", message);
   } catch (dialogError) {
     process.stderr.write(`${message}\n\nFailed to show the error dialog: ${String(dialogError)}\n`);
   }
@@ -296,14 +297,14 @@ function parseDeepLink(link: string): URL | null {
   } catch {
     return null;
   }
-  if (parsed.protocol !== "sing-box:") {
+  if (parsed.protocol !== "aerovpn:" && parsed.protocol !== "sing-box:") {
     return null;
   }
   if (parsed.host !== "") {
     return parsed;
   }
   try {
-    return new URL(`sing-box://${parsed.pathname}${parsed.search}${parsed.hash}`);
+    return new URL(`${parsed.protocol}//${parsed.pathname}${parsed.search}${parsed.hash}`);
   } catch {
     return null;
   }
@@ -424,7 +425,7 @@ function deepLinkFromArguments(argv: string[]): string | undefined {
   if (AERO_MANAGED_MODE) {
     return undefined;
   }
-  return argv.find((argument) => argument.startsWith("sing-box://"));
+  return argv.find((argument) => /^(aerovpn|sing-box):\/\//iu.test(argument));
 }
 
 function profileFileFromArguments(argv: string[]): string | undefined {
@@ -438,6 +439,7 @@ const singleInstanceLock = app.requestSingleInstanceLock();
 if (!singleInstanceLock) {
   app.quit();
 } else {
+  app.setAsDefaultProtocolClient("aerovpn");
   app.setAsDefaultProtocolClient("sing-box");
   if (process.platform === "win32") {
     app.setAppUserModelId("io.nekohasekai.sfw");

@@ -305,17 +305,17 @@ export const DESKTOP_TRANSLATIONS = {
     "fa": "تلاش مجدد",
     "ru": "Повторить",
   },
-  "The sing-box service is not installed": {
-    "zh-Hans": "sing-box 服务未安装",
-    "zh-Hant": "sing-box 服務未安裝",
-    "fa": "سرویس sing-box نصب نشده است",
-    "ru": "Служба sing-box не установлена",
+  "The AeroVPN service is not installed": {
+    "zh-Hans": "AeroVPN 服务未安装",
+    "zh-Hant": "AeroVPN 服務未安裝",
+    "fa": "سرویس AeroVPN نصب نشده است",
+    "ru": "Служба AeroVPN не установлена",
   },
-  "The sing-box service is not running": {
-    "zh-Hans": "sing-box 服务未运行",
-    "zh-Hant": "sing-box 服務未運行",
-    "fa": "سرویس sing-box در حال اجرا نیست",
-    "ru": "Служба sing-box не запущена",
+  "The AeroVPN service is not running": {
+    "zh-Hans": "AeroVPN 服务未运行",
+    "zh-Hant": "AeroVPN 服務未執行",
+    "fa": "سرویس AeroVPN در حال اجرا نیست",
+    "ru": "Служба AeroVPN не запущена",
   },
   "Incompatible service version": {
     "zh-Hans": "服务版本不兼容",

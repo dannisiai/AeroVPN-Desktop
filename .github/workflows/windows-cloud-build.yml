@@ -18,7 +18,7 @@ jobs:
           path: AeroVPN-Desktop
           submodules: recursive
 
-      - name: Checkout matching sing-box core source
+      - name: Checkout pinned connection engine source
         uses: actions/checkout@v4
         with:
           repository: SagerNet/sing-box
@@ -118,7 +118,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "pnpm install exited with $LASTEXITCODE" }
           pnpm package:win x64
           if ($LASTEXITCODE -ne 0) { throw "pnpm package:win exited with $LASTEXITCODE" }
-          $artifacts = @(Get-ChildItem -LiteralPath release -Filter 'SFW-*-x64.exe' -File)
+          $artifacts = @(Get-ChildItem -LiteralPath release -Filter 'AeroVPN-*-x64.exe' -File)
           if ($artifacts.Count -ne 1) { throw "Expected one x64 installer, found $($artifacts.Count)" }
           Get-Item $artifacts[0].FullName | Select-Object FullName, Length
           Get-AuthenticodeSignature $artifacts[0].FullName | Select-Object Status, @{Name='Signer';Expression={$_.SignerCertificate.Subject}}
@@ -137,7 +137,7 @@ jobs:
       - name: Upload Windows x64 installer
         uses: actions/upload-artifact@v4
         with:
-          name: sing-box-desktop-win-x64
-          path: AeroVPN-Desktop/release/SFW-*-x64.exe
+          name: AeroVPN-win-x64
+          path: AeroVPN-Desktop/release/AeroVPN-*-x64.exe
           if-no-files-found: error
           retention-days: 30

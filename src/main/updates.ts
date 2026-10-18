@@ -23,7 +23,7 @@ import { parseBooleanPreference, Preference } from "./database";
 import { desktopService } from "./daemon";
 import { userAgent } from "./userAgent";
 
-const RELEASES_URL = "https://api.github.com/repos/SagerNet/sing-box/releases";
+const RELEASES_URL = "https://api.github.com/repos/dannisiai/AeroVPN-Desktop/releases";
 const RELEASES_REQUEST_TIMEOUT_MILLISECONDS = 30_000;
 const EXIT_CODE_CANCELLED = 1223;
 const EXIT_CODE_LAUNCH_FAILED = 1224;
@@ -209,6 +209,9 @@ async function fetchReleases(track: UpdateTrack, githubToken: string): Promise<G
       signal: AbortSignal.timeout(RELEASES_REQUEST_TIMEOUT_MILLISECONDS),
     },
   );
+  if (track === "stable" && response.status === 404) {
+    return [];
+  }
   if (!response.ok) {
     throw new Error(`fetch releases: HTTP ${response.status}`);
   }
@@ -223,7 +226,7 @@ function findWindowsAsset(assets: GitHubAsset[]): GitHubAsset | null {
     throw new Error(`unsupported Windows architecture: ${process.arch}`);
   }
   const executables = assets.filter(
-    (asset) => asset.name.startsWith("SFW-") && asset.name.endsWith(".exe"),
+    (asset) => asset.name.startsWith("AeroVPN-") && asset.name.endsWith(".exe"),
   );
   for (const token of updateArchitectureTokens) {
     const match = executables.find((asset) => asset.name.endsWith(`-${token}.exe`));

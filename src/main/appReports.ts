@@ -103,7 +103,7 @@ export function captureRuntimeCrash(kind: string, error: unknown): RuntimeCrashC
     try {
       return {
         reportPath: writeRuntimeCrash(
-          join(tmpdir(), "sing-box-crash_reports"),
+          join(tmpdir(), "AeroVPN-crash_reports"),
           now,
           kind,
           metadata,

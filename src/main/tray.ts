@@ -109,7 +109,7 @@ function groupsSubmenu(): MenuItemConstructorOptions[] {
 function buildTrayTemplate(): MenuItemConstructorOptions[] {
   const started = daemonState.status === ServiceStatus_Type.STARTED;
   const { selectedId, profiles } = profilesState();
-  const template: MenuItemConstructorOptions[] = [{ label: "sing-box", enabled: false }];
+  const template: MenuItemConstructorOptions[] = [{ label: "AeroVPN", enabled: false }];
   if (started) {
     template.push({
       label: translate("Stop"),
@@ -198,7 +198,7 @@ export function initializeTray(open: () => void) {
 
 function createElectronTray() {
   tray = new Tray(trayIcon());
-  tray.setToolTip("sing-box");
+  tray.setToolTip("AeroVPN");
   if (process.platform === "win32") {
     prepareTrayMenuWindow(tray.getBounds());
     const popMenu = (bounds: Rectangle) => {

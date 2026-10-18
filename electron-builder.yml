@@ -1,4 +1,4 @@
-productName: sing-box
+productName: AeroVPN
 copyright: nekohasekai
 publish: null
 afterPack: scripts/afterPack.cjs
@@ -43,9 +43,9 @@ extraResources:
     to: icons/512x512.png
 fileAssociations:
   - ext: bpf
-    name: sing-box profile
-    description: sing-box profile
-    mimeType: application/x-sing-box-profile
+    name: AeroVPN profile
+    description: AeroVPN profile
+    mimeType: application/x-aerovpn-profile
 win:
   appId: io.nekohasekai.sfw
   forceCodeSigning: true
@@ -80,7 +80,7 @@ win:
       to: native/windows_share.node
   target:
     - nsis
-  artifactName: SFW-${version}-${env.SFW_ARCHITECTURE}.${ext}
+  artifactName: AeroVPN-${version}-${env.SFW_ARCHITECTURE}.${ext}
 nsis:
   oneClick: false
   buildUniversalInstaller: false
@@ -95,7 +95,7 @@ nsis:
   allowToChangeInstallationDirectory: false
   deleteAppDataOnUninstall: false
   include: build/installer.nsh
-  artifactName: SFW-${version}-${env.SFW_ARCHITECTURE}.${ext}
+  artifactName: AeroVPN-${version}-${env.SFW_ARCHITECTURE}.${ext}
 linux:
   appId: io.nekohasekai.sfl
   syncDesktopName: true
@@ -106,8 +106,9 @@ linux:
   maintainer: 世界 <i@sekai.icu>
   vendor: SagerNet
   protocols:
-    - name: sing-box
+    - name: AeroVPN
       schemes:
+        - aerovpn
         - sing-box
   extraResources:
     - from: resources/tray.png
