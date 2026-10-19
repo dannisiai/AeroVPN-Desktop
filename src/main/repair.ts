@@ -218,7 +218,11 @@ async function repair(action: "install" | "start", onRepaired: () => void): Prom
   const serviceAction = process.platform === "linux" && action === "install" ? "restart" : action;
   const commandArguments = ["service", serviceAction];
   if (process.platform === "win32" && action === "install") {
-    commandArguments.push("--working-directory", applicationPaths().daemonData);
+    const paths = applicationPaths();
+    commandArguments.push("--working-directory", paths.daemonData);
+    if (paths.allowUnsafeServiceInstallation) {
+      commandArguments.push("--allow-unsafe-installation-directory-permissions");
+    }
   }
   const exitCode = await (process.platform === "linux"
     ? runElevatedLinux(commandArguments)

@@ -5,9 +5,11 @@ param(
     [string]$DaemonWorkingDirectory,
     [string]$InstallationID,
     [string]$ResultOutputPath,
+    [string]$ResultFailureTypePath,
     [string]$ResultCodePath,
     [string]$ProcessIDPath,
     [switch]$AllowUnsafeInstallationDirectory,
+    [switch]$AllowUnprotectedApplicationDirectory,
     [Alias("RepairInstallationAncestors")][switch]$RepairPathAncestors,
     [switch]$ResetWorkingDirectory,
     [switch]$PrepareApplicationDataDirectory,
@@ -33,6 +35,17 @@ function Write-InstallerOutput([string]$Value) {
         $ResultOutputPath,
         $Value,
         [System.Text.Encoding]::Unicode
+    )
+}
+
+function Write-InstallerFailureType([string]$Value) {
+    if ([string]::IsNullOrWhiteSpace($ResultFailureTypePath)) {
+        return
+    }
+    [System.IO.File]::WriteAllText(
+        $ResultFailureTypePath,
+        $Value,
+        [System.Text.Encoding]::ASCII
     )
 }
 
@@ -660,8 +673,14 @@ try {
                 Exit-Installer 32
             }
         }
+        if ($AllowUnprotectedApplicationDirectory -and
+            $null -ne $unsafeInstallationAncestor -and
+            $unsafeInstallationAncestor.ExitCode -in @(12, 13)) {
+            $unsafeInstallationAncestor = $null
+        }
         if ($null -ne $unsafeInstallationAncestor) {
             Write-InstallerOutput $unsafeInstallationAncestor.Path
+            Write-InstallerFailureType "application-installation"
             Exit-Installer ([int]$unsafeInstallationAncestor.ExitCode)
         }
     }
@@ -700,6 +719,7 @@ try {
         }
         if ($null -ne $unsafeWorkingAncestor) {
             Write-InstallerOutput $unsafeWorkingAncestor.Path
+            Write-InstallerFailureType "daemon-working-directory"
             if ($unsafeWorkingAncestor.ExitCode -eq 13) {
                 Exit-Installer 17
             }
@@ -742,6 +762,7 @@ try {
             }
             if ($null -ne $unsafeApplicationDataAncestor) {
                 Write-InstallerOutput $unsafeApplicationDataAncestor.Path
+                Write-InstallerFailureType "application-data"
                 if ($unsafeApplicationDataAncestor.ExitCode -eq 13) {
                     Exit-Installer 18
                 }

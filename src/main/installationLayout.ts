@@ -7,6 +7,7 @@ import { spawnSync } from "node:child_process";
 export interface WindowsInstallationLayout {
   applicationDataDirectory: string;
   daemonDataDirectory: string;
+  allowUnsafeServiceInstallation: boolean;
 }
 
 const installationRegistryPath = String.raw`SOFTWARE\SagerNet\sing-box`;
@@ -16,12 +17,14 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 $registryPath = $env:sing_box_installation_registry_path
 $applicationDataDirectory = $env:sing_box_default_application_data_directory
+$allowUnsafeServiceInstallation = $false
 $commonApplicationData = [Environment]::GetFolderPath(
   [Environment+SpecialFolder]::CommonApplicationData
 )
 $daemonDataDirectory = Join-Path $commonApplicationData "sing-box-daemon"
 
-$registryView = if ([Environment]::Is64BitOperatingSystem) {
+$registryView = if ([Environment]::Is64BitOperatingSystem -and
+    $env:sing_box_installation_registry_view -ne "32") {
   [Microsoft.Win32.RegistryView]::Registry64
 } else {
   [Microsoft.Win32.RegistryView]::Registry32
@@ -49,8 +52,13 @@ try {
           "",
           [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames
         )
+        $configuredUnsafeServiceInstallation = $installationKey.GetValue(
+          "AllowUnsafeInstallationDirectoryPermissions",
+          0
+        )
         if ($configuredApplicationDataDirectory -isnot [string] -or
             $configuredDaemonDataDirectory -isnot [string] -or
+            $configuredUnsafeServiceInstallation -isnot [int] -or
             [string]::IsNullOrWhiteSpace($configuredDaemonDataDirectory)) {
           throw "The AeroVPN installation layout is invalid."
         }
@@ -58,6 +66,7 @@ try {
           $applicationDataDirectory = $configuredApplicationDataDirectory
         }
         $daemonDataDirectory = $configuredDaemonDataDirectory
+        $allowUnsafeServiceInstallation = $configuredUnsafeServiceInstallation -ne 0
       }
     } finally {
       $installationKey.Dispose()
@@ -70,6 +79,7 @@ try {
 $result = @{
   applicationDataDirectory = $applicationDataDirectory
   daemonDataDirectory = $daemonDataDirectory
+  allowUnsafeServiceInstallation = $allowUnsafeServiceInstallation
 } | ConvertTo-Json -Compress
 [System.IO.File]::WriteAllText(
   $env:sing_box_installation_layout_output,
@@ -110,6 +120,7 @@ export function readWindowsInstallationLayout(
           ...process.env,
           sing_box_default_application_data_directory: defaultApplicationDataDirectory,
           sing_box_installation_registry_path: installationRegistryPath,
+          sing_box_installation_registry_view: process.arch === "ia32" ? "32" : "64",
           sing_box_installation_layout_output: outputPath,
         },
       },
@@ -130,7 +141,8 @@ export function readWindowsInstallationLayout(
       typeof value !== "object" ||
       value === null ||
       typeof (value as Record<string, unknown>).applicationDataDirectory !== "string" ||
-      typeof (value as Record<string, unknown>).daemonDataDirectory !== "string"
+      typeof (value as Record<string, unknown>).daemonDataDirectory !== "string" ||
+      typeof (value as Record<string, unknown>).allowUnsafeServiceInstallation !== "boolean"
     ) {
       throw new Error("the installation layout is invalid");
     }

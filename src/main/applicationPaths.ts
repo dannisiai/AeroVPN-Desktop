@@ -8,6 +8,7 @@ import { secureApplicationUserData } from "./userDataSecurity";
 export interface ApplicationPaths {
   userData: string;
   daemonData: string;
+  allowUnsafeServiceInstallation: boolean;
 }
 
 let configuredPaths: ApplicationPaths | null = null;
@@ -25,12 +26,14 @@ export function configureApplicationPaths(developmentUserDataPath: string): Appl
         process.platform === "win32"
           ? "C:\\ProgramData\\sing-box-daemon"
           : "/var/lib/sing-box-daemon",
+      allowUnsafeServiceInstallation: false,
     };
   } else if (process.platform === "win32" && app.isPackaged) {
     const layout = readWindowsInstallationLayout(defaultUserDataPath);
     paths = {
       userData: layout.applicationDataDirectory,
       daemonData: layout.daemonDataDirectory,
+      allowUnsafeServiceInstallation: layout.allowUnsafeServiceInstallation,
     };
   } else {
     paths = {
@@ -39,6 +42,7 @@ export function configureApplicationPaths(developmentUserDataPath: string): Appl
         process.platform === "win32"
           ? "C:\\ProgramData\\sing-box-daemon"
           : "/var/lib/sing-box-daemon",
+      allowUnsafeServiceInstallation: false,
     };
   }
 

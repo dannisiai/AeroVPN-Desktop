@@ -91,10 +91,10 @@ english.AdditionalShortcuts=Additional shortcuts:
 chinesesimplified.AdditionalShortcuts=其他快捷方式：
 english.LaunchAeroVPN=Launch AeroVPN
 chinesesimplified.LaunchAeroVPN=启动 AeroVPN
-english.UnsafePreviousInstallDirectory=The previous AeroVPN installation directory is not protected by Windows. The installer selected the default protected directory:
-chinesesimplified.UnsafePreviousInstallDirectory=以前的 AeroVPN 安装目录不受 Windows 系统目录权限保护。安装程序已改用默认的受保护目录：
-english.UnsafeInstallDirectoryError=The selected AeroVPN directory is not under a Windows-protected location. Choose a protected directory such as:
-chinesesimplified.UnsafeInstallDirectoryError=所选 AeroVPN 目录不在 Windows 受保护的位置下。请改选受保护的目录，例如：
+english.UnsafeInstallationDirectoryWarning=The selected AeroVPN directory can be modified by an unprivileged local account. If you continue, another local program could replace the service executable and potentially gain SYSTEM-level access. Continue with this directory?
+chinesesimplified.UnsafeInstallationDirectoryWarning=所选 AeroVPN 安装目录可被普通本地账户修改。继续后，其他本地程序可能替换服务程序并获得 SYSTEM 系统权限。仍要使用此目录吗？
+english.UnsafeInstallationDirectoryDeclined=Installation was canceled because the selected directory is not protected.
+chinesesimplified.UnsafeInstallationDirectoryDeclined=所选目录未受保护，安装已取消。
 
 [Files]
 Source: "{#AppDirectory}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -122,6 +122,8 @@ var
   DaemonDataDirectory: String;
   InstallationID: String;
   LegacyInstallDirectory: String;
+  AllowUnsafeInstallationDirectory: Boolean;
+  PreviouslyAllowedUnsafeInstallationDirectory: Boolean;
 
 function NewInstallationID: String;
 var
@@ -147,16 +149,23 @@ end;
 procedure ReadInstallationLayout(StrictLayout: Boolean);
 var
   LayoutVersion: Cardinal;
+  UnsafeInstallationPermission: Cardinal;
 begin
   ApplicationDataDirectory := '';
   DaemonDataDirectory := ExpandConstant('{commonappdata}\sing-box-daemon');
   InstallationID := '';
+  LegacyInstallDirectory := '';
+  AllowUnsafeInstallationDirectory := False;
+  PreviouslyAllowedUnsafeInstallationDirectory := False;
   RegQueryStringValue(HKLM, LegacyInstallRegistryKey, 'InstallLocation', LegacyInstallDirectory);
   if RegQueryDWordValue(HKLM, LayoutRegistryKey, 'LayoutVersion', LayoutVersion) then begin
     if LayoutVersion = 2 then begin
       RegQueryStringValue(HKLM, LayoutRegistryKey, 'ApplicationDataDirectory', ApplicationDataDirectory);
       RegQueryStringValue(HKLM, LayoutRegistryKey, 'DaemonDataDirectory', DaemonDataDirectory);
       RegQueryStringValue(HKLM, LayoutRegistryKey, 'InstallationID', InstallationID);
+      if RegQueryDWordValue(HKLM, LayoutRegistryKey,
+          'AllowUnsafeInstallationDirectoryPermissions', UnsafeInstallationPermission) then
+        PreviouslyAllowedUnsafeInstallationDirectory := UnsafeInstallationPermission <> 0;
     end else if StrictLayout then
       RaiseException('Unsupported AeroVPN installation data layout.');
   end;
@@ -176,20 +185,6 @@ function RunPowerShell(const Parameters: String; var ResultCode: Integer): Boole
 begin
   Result := Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
     Parameters, '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-end;
-
-function IsSafeInstallationDirectory(const Directory: String): Boolean;
-var
-  ResultCode: Integer;
-  Parameters: String;
-  Started: Boolean;
-begin
-  Parameters := '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' +
-    ExpandConstant('{tmp}\installer-preflight.ps1') +
-    '" -InstallationDirectory "' + Directory +
-    '" -DaemonWorkingDirectory "' + DaemonDataDirectory + '"';
-  Started := RunPowerShell(Parameters, ResultCode);
-  Result := Started and (ResultCode = 0);
 end;
 
 function RunLegacyUninstaller(var ResultCode: Integer): Boolean;
@@ -232,16 +227,37 @@ begin
   Result := Exec(FileName, Parameters, ExtractFileDir(FileName), SW_HIDE, ewWaitUntilTerminated, ResultCode);
 end;
 
-function PreflightParameters: String;
+function PreflightParameters(AllowUnprotectedApplicationDirectory: Boolean): String;
 begin
   Result := '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' +
     ExpandConstant('{tmp}\installer-preflight.ps1') +
     '" -InstallationDirectory "' + WizardDirValue +
     '" -DaemonWorkingDirectory "' + DaemonDataDirectory +
-    '" -InstallationID "' + InstallationID + '"';
+    '" -InstallationID "' + InstallationID +
+    '" -ResultOutputPath "' + ExpandConstant('{tmp}\aerovpn-preflight-output.txt') +
+    '" -ResultFailureTypePath "' + ExpandConstant('{tmp}\aerovpn-preflight-failure-type.txt') + '"';
+  if AllowUnprotectedApplicationDirectory then
+    Result := Result + ' -AllowUnprotectedApplicationDirectory';
   if ApplicationDataDirectory <> '' then
     Result := Result + ' -ApplicationDataDirectory "' + ApplicationDataDirectory +
       '" -PrepareApplicationDataDirectory';
+end;
+
+function RunInstallationPreflight(AllowUnprotectedApplicationDirectory: Boolean;
+    var ResultCode: Integer): Boolean;
+begin
+  DeleteFile(ExpandConstant('{tmp}\aerovpn-preflight-output.txt'));
+  DeleteFile(ExpandConstant('{tmp}\aerovpn-preflight-failure-type.txt'));
+  Result := RunPowerShell(PreflightParameters(AllowUnprotectedApplicationDirectory), ResultCode);
+end;
+
+function PreflightFailureType: String;
+var
+  Contents: AnsiString;
+begin
+  Result := '';
+  if LoadStringFromFile(ExpandConstant('{tmp}\aerovpn-preflight-failure-type.txt'), Contents) then
+    Result := Trim(String(Contents));
 end;
 
 function UninstallDataParameters: String;
@@ -279,22 +295,11 @@ begin
 end;
 
 procedure InitializeWizard;
-var
-  PreviousDirectory: String;
-  DefaultDirectory: String;
 begin
   ExtractTemporaryFile('installer-preflight.ps1');
   ExtractTemporaryFile('installer-service.ps1');
   if (LegacyInstallDirectory <> '') and DirExists(LegacyInstallDirectory) then
     WizardForm.DirEdit.Text := LegacyInstallDirectory;
-  PreviousDirectory := WizardForm.DirEdit.Text;
-  DefaultDirectory := ExpandConstant('{autopf}\AeroVPN');
-  if not IsSafeInstallationDirectory(PreviousDirectory) then begin
-    WizardForm.DirEdit.Text := DefaultDirectory;
-    if Uppercase(PreviousDirectory) <> Uppercase(DefaultDirectory) then
-      MsgBox(CustomMessage('UnsafePreviousInstallDirectory') + #13#10 + DefaultDirectory,
-        mbInformation, MB_OK);
-  end;
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;
@@ -303,17 +308,30 @@ var
   Started: Boolean;
 begin
   Result := '';
-  if not RunPowerShell(PreflightParameters, ResultCode) then begin
+  AllowUnsafeInstallationDirectory :=
+    PreviouslyAllowedUnsafeInstallationDirectory and
+    (CompareText(ExpandConstant('{app}'), LegacyInstallDirectory) = 0);
+  if not RunInstallationPreflight(AllowUnsafeInstallationDirectory, ResultCode) then begin
     Result := 'Could not start AeroVPN directory validation.';
     Exit;
   end;
+  if ((ResultCode = 12) or (ResultCode = 13)) and
+      (not AllowUnsafeInstallationDirectory) and
+      (PreflightFailureType = 'application-installation') then begin
+    if MsgBox(CustomMessage('UnsafeInstallationDirectoryWarning') + #13#10 +
+        WizardDirValue, mbConfirmation, MB_YESNO or MB_DEFBUTTON2) = IDYES then begin
+      AllowUnsafeInstallationDirectory := True;
+      if not RunInstallationPreflight(True, ResultCode) then begin
+        Result := 'Could not revalidate the selected AeroVPN directory.';
+        Exit;
+      end;
+    end else begin
+      Result := CustomMessage('UnsafeInstallationDirectoryDeclined');
+      Exit;
+    end;
+  end;
   if ResultCode <> 0 then begin
-    if ResultCode = 12 then
-      Result := CustomMessage('UnsafeInstallDirectoryError') + #13#10 +
-        ExpandConstant('{autopf}\AeroVPN') + #13#10#13#10 +
-        'Error code: ' + IntToStr(ResultCode)
-    else
-      Result := 'AeroVPN could not safely prepare the selected installation and service directories. Error code: ' + IntToStr(ResultCode);
+    Result := 'AeroVPN could not safely prepare the selected installation and service data directories. Error code: ' + IntToStr(ResultCode);
     Exit;
   end;
 
@@ -342,6 +360,8 @@ begin
     '" -ExecutablePath "' + ExpandConstant('{app}\resources\daemon\aerovpn-service.exe') +
     '" -ServiceAction ' + Action + ' -OutputPath "' + OutputPath +
     '" -DaemonDataDirectory "' + DaemonDataDirectory + '"';
+  if (Action = 'install') and AllowUnsafeInstallationDirectory then
+    Parameters := Parameters + ' -AllowUnsafeInstallationDirectoryPermissions';
   Result := RunPowerShell(Parameters, ResultCode);
 end;
 
@@ -382,6 +402,12 @@ begin
     else
       RegWriteStringValue(HKLM, LayoutRegistryKey, 'ApplicationDataDirectory', ApplicationDataDirectory);
     RegWriteStringValue(HKLM, LayoutRegistryKey, 'DaemonDataDirectory', DaemonDataDirectory);
+    if AllowUnsafeInstallationDirectory then
+      RegWriteDWordValue(HKLM, LayoutRegistryKey,
+        'AllowUnsafeInstallationDirectoryPermissions', 1)
+    else
+      RegDeleteValue(HKLM, LayoutRegistryKey,
+        'AllowUnsafeInstallationDirectoryPermissions');
     RegWriteStringValue(HKLM, LegacyInstallRegistryKey, 'InstallLocation', ExpandConstant('{app}'));
     RegDeleteKeyIncludingSubkeys(HKLM, LegacyUninstallRegistryKey);
     RegisterAeroVPNAssociations;
