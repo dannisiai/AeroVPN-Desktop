@@ -45,7 +45,7 @@ fileAssociations:
     description: AeroVPN profile
     mimeType: application/x-aerovpn-profile
 win:
-  appId: io.nekohasekai.sfw
+  appId: com.aerovpn.desktop
   forceCodeSigning: true
   icon: resources/icon.ico
   signtoolOptions:
@@ -58,6 +58,8 @@ win:
       to: tray.ico
     - from: resources/trayStopped.ico
       to: trayStopped.ico
+    - from: build/windows-system-proxy.ps1
+      to: windows-system-proxy.ps1
     - from: bin/windows/${arch}/aerovpn-service.exe
       to: daemon/aerovpn-service.exe
     - from: bin/windows/${arch}
@@ -82,6 +84,7 @@ win:
     - nsis
   artifactName: AeroVPN-${version}-${arch}.${ext}
 nsis:
+  guid: b04debae-1e49-5a92-ae01-360bcd3e85c5
   oneClick: false
   buildUniversalInstaller: false
   differentialPackage: false

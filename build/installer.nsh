@@ -11,13 +11,10 @@ SetFont "Segoe UI" 9
   !include StrContains.nsh
   !define DO_NOT_CREATE_DESKTOP_SHORTCUT
 
-  Var allowUnsafeInstallation
-  Var installationValidationAllowsUnsafe
   Var installationValidationDialog
   Var installationValidationMessage
   Var installationValidationRepairable
   Var installationValidationRepairButton
-  Var installationValidationUnsafeButton
   Var installationValidationStatusLabel
   Var installationValidationProgressBar
   Var installationValidationProcessHandle
@@ -26,9 +23,6 @@ SetFont "Segoe UI" 9
   Var installationValidationResultPath
   Var installationValidationResult
   Var installationValidationOutput
-  Var unsafeInstallationAcknowledgementCheckbox
-  Var unsafeInstallationConfirmationRequested
-  Var unsafeInstallationReturnButton
   Var unsafeInstallationAncestor
   Var resetWorkingDirectory
   Var workingDirectory
@@ -462,47 +456,35 @@ FunctionEnd
   LangString invalidInstallationAncestor ${LANG_FARSI} "یکی از پوشه‌های بالادستی مسیر نصب، پوشهٔ عادی نیست یا نقطهٔ بازتحلیل دارد:$\r$\n$0"
   LangString invalidInstallationAncestor ${LANG_RUSSIAN} "Родительский каталог пути установки не является обычным каталогом или содержит точку повторной обработки:$\r$\n$0"
 
-  LangString unsafeInstallationPageTitle ${LANG_ENGLISH} "Unsafe installation path"
-  LangString unsafeInstallationPageTitle ${LANG_SIMPCHINESE} "安装路径不安全"
-  LangString unsafeInstallationPageTitle ${LANG_TRADCHINESE} "安裝路徑不安全"
-  LangString unsafeInstallationPageTitle ${LANG_FARSI} "مسیر نصب ناامن"
-  LangString unsafeInstallationPageTitle ${LANG_RUSSIAN} "Небезопасный путь установки"
+  LangString repairPathPermissionsPageTitle ${LANG_ENGLISH} "Repair path permissions"
+  LangString repairPathPermissionsPageTitle ${LANG_SIMPCHINESE} "修复路径权限"
+  LangString repairPathPermissionsPageTitle ${LANG_TRADCHINESE} "修復路徑權限"
+  LangString repairPathPermissionsPageTitle ${LANG_FARSI} "اصلاح مجوزهای مسیر"
+  LangString repairPathPermissionsPageTitle ${LANG_RUSSIAN} "Исправление разрешений пути"
 
-  LangString unsafeInstallationPageSubtitle ${LANG_ENGLISH} "Repair the path when possible or continue with unsafe installation."
-  LangString unsafeInstallationPageSubtitle ${LANG_SIMPCHINESE} "可修复时修复路径，或继续不安全安装。"
-  LangString unsafeInstallationPageSubtitle ${LANG_TRADCHINESE} "可修復時修復路徑，或繼續不安全安裝。"
-  LangString unsafeInstallationPageSubtitle ${LANG_FARSI} "در صورت امکان مسیر را اصلاح کنید یا نصب ناامن را ادامه دهید."
-  LangString unsafeInstallationPageSubtitle ${LANG_RUSSIAN} "Исправьте путь, если это возможно, или продолжите небезопасную установку."
+  LangString repairPathPermissionsPageSubtitle ${LANG_ENGLISH} "Repair the permissions to continue installation."
+  LangString repairPathPermissionsPageSubtitle ${LANG_SIMPCHINESE} "修复路径权限后即可继续安装。"
+  LangString repairPathPermissionsPageSubtitle ${LANG_TRADCHINESE} "修復路徑權限後即可繼續安裝。"
+  LangString repairPathPermissionsPageSubtitle ${LANG_FARSI} "برای ادامهٔ نصب، مجوزهای مسیر را اصلاح کنید."
+  LangString repairPathPermissionsPageSubtitle ${LANG_RUSSIAN} "Исправьте разрешения пути, чтобы продолжить установку."
 
-  LangString repairPathPermissionsPageTitle ${LANG_ENGLISH} "Unsafe path permissions"
-  LangString repairPathPermissionsPageTitle ${LANG_SIMPCHINESE} "路径权限不安全"
-  LangString repairPathPermissionsPageTitle ${LANG_TRADCHINESE} "路徑權限不安全"
-  LangString repairPathPermissionsPageTitle ${LANG_FARSI} "مجوزهای مسیر ناامن"
-  LangString repairPathPermissionsPageTitle ${LANG_RUSSIAN} "Небезопасные разрешения пути"
+  LangString unsafeInstallationPageBody ${LANG_ENGLISH} "An unprivileged account can replace this installation path ancestor:$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\nRepair the permissions to continue."
+  LangString unsafeInstallationPageBody ${LANG_SIMPCHINESE} "非管理员账户可以替换此安装路径的上级目录：$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\n请修复权限后继续安装。"
+  LangString unsafeInstallationPageBody ${LANG_TRADCHINESE} "非系統管理員帳戶可以取代此安裝路徑的上層目錄：$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\n請修復權限後繼續安裝。"
+  LangString unsafeInstallationPageBody ${LANG_FARSI} "یک حساب غیرمدیر می‌تواند این پوشهٔ بالادستی مسیر نصب را جایگزین کند:$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\nبرای ادامه، مجوزها را اصلاح کنید."
+  LangString unsafeInstallationPageBody ${LANG_RUSSIAN} "Учетная запись без прав администратора может заменить этот родительский каталог:$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\nИсправьте разрешения, чтобы продолжить."
 
-  LangString repairPathPermissionsPageSubtitle ${LANG_ENGLISH} "Repair the permissions or continue with unsafe installation."
-  LangString repairPathPermissionsPageSubtitle ${LANG_SIMPCHINESE} "修复权限，或继续不安全安装。"
-  LangString repairPathPermissionsPageSubtitle ${LANG_TRADCHINESE} "修復權限，或繼續不安全安裝。"
-  LangString repairPathPermissionsPageSubtitle ${LANG_FARSI} "مجوزها را اصلاح کنید یا نصب ناامن را ادامه دهید."
-  LangString repairPathPermissionsPageSubtitle ${LANG_RUSSIAN} "Исправьте разрешения или продолжите небезопасную установку."
+  LangString unsafeDaemonDataDirectoryPageBody ${LANG_ENGLISH} "An unprivileged account can replace this daemon data path ancestor:$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\nRepair the permissions to continue."
+  LangString unsafeDaemonDataDirectoryPageBody ${LANG_SIMPCHINESE} "非管理员账户可以替换此守护进程数据路径的上级目录：$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\n请修复权限后继续安装。"
+  LangString unsafeDaemonDataDirectoryPageBody ${LANG_TRADCHINESE} "非系統管理員帳戶可以取代此守護程序資料路徑的上層目錄：$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\n請修復權限後繼續安裝。"
+  LangString unsafeDaemonDataDirectoryPageBody ${LANG_FARSI} "یک حساب غیرمدیر می‌تواند این پوشهٔ بالادستی مسیر دادهٔ سرویس را جایگزین کند:$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\nبرای ادامه، مجوزها را اصلاح کنید."
+  LangString unsafeDaemonDataDirectoryPageBody ${LANG_RUSSIAN} "Учетная запись без прав администратора может заменить этот родительский каталог пути данных службы:$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\nИсправьте разрешения, чтобы продолжить."
 
-  LangString unsafeInstallationPageBody ${LANG_ENGLISH} "An unprivileged account can replace this installation path ancestor:$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\nRepair removes only the dangerous permissions. Unsafe installation leaves the path unchanged."
-  LangString unsafeInstallationPageBody ${LANG_SIMPCHINESE} "非管理员账户可以替换此安装路径的上级目录：$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\n修复只会移除危险权限。不安全安装会保持此路径不变。"
-  LangString unsafeInstallationPageBody ${LANG_TRADCHINESE} "非系統管理員帳戶可以取代此安裝路徑的上層目錄：$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\n修復只會移除危險權限。不安全安裝會保持此路徑不變。"
-  LangString unsafeInstallationPageBody ${LANG_FARSI} "یک حساب غیرمدیر می‌تواند این پوشهٔ بالادستی مسیر نصب را جایگزین کند:$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\nاصلاح فقط مجوزهای خطرناک را حذف می‌کند. نصب ناامن مسیر را بدون تغییر نگه می‌دارد."
-  LangString unsafeInstallationPageBody ${LANG_RUSSIAN} "Учетная запись без прав администратора может заменить этот родительский каталог:$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\nИсправление удалит только опасные разрешения. Небезопасная установка оставит путь без изменений."
-
-  LangString unsafeDaemonDataDirectoryPageBody ${LANG_ENGLISH} "An unprivileged account can replace this daemon data path ancestor:$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\nRepair removes only the dangerous permissions. Unsafe installation leaves the path unchanged."
-  LangString unsafeDaemonDataDirectoryPageBody ${LANG_SIMPCHINESE} "非管理员账户可以替换此守护进程数据路径的上级目录：$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\n修复只会移除危险权限。不安全安装会保持此路径不变。"
-  LangString unsafeDaemonDataDirectoryPageBody ${LANG_TRADCHINESE} "非系統管理員帳戶可以取代此守護程序資料路徑的上層目錄：$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\n修復只會移除危險權限。不安全安裝會保持此路徑不變。"
-  LangString unsafeDaemonDataDirectoryPageBody ${LANG_FARSI} "یک حساب غیرمدیر می‌تواند این پوشهٔ بالادستی مسیر دادهٔ سرویس را جایگزین کند:$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\nاصلاح فقط مجوزهای خطرناک را حذف می‌کند. نصب ناامن مسیر را بدون تغییر نگه می‌دارد."
-  LangString unsafeDaemonDataDirectoryPageBody ${LANG_RUSSIAN} "Учетная запись без прав администратора может заменить этот родительский каталог пути данных службы:$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\nИсправление удалит только опасные разрешения. Небезопасная установка оставит путь без изменений."
-
-  LangString unsafeApplicationDataDirectoryPageBody ${LANG_ENGLISH} "An unprivileged account can replace this application data path ancestor:$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\nRepair removes only the dangerous permissions. Unsafe installation leaves the path unchanged."
-  LangString unsafeApplicationDataDirectoryPageBody ${LANG_SIMPCHINESE} "非管理员账户可以替换此应用数据路径的上级目录：$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\n修复只会移除危险权限。不安全安装会保持此路径不变。"
-  LangString unsafeApplicationDataDirectoryPageBody ${LANG_TRADCHINESE} "非系統管理員帳戶可以取代此應用程式資料路徑的上層目錄：$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\n修復只會移除危險權限。不安全安裝會保持此路徑不變。"
-  LangString unsafeApplicationDataDirectoryPageBody ${LANG_FARSI} "یک حساب غیرمدیر می‌تواند این پوشهٔ بالادستی مسیر دادهٔ برنامه را جایگزین کند:$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\nاصلاح فقط مجوزهای خطرناک را حذف می‌کند. نصب ناامن مسیر را بدون تغییر نگه می‌دارد."
-  LangString unsafeApplicationDataDirectoryPageBody ${LANG_RUSSIAN} "Учетная запись без прав администратора может заменить этот родительский каталог пути данных приложения:$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\nИсправление удалит только опасные разрешения. Небезопасная установка оставит путь без изменений."
+  LangString unsafeApplicationDataDirectoryPageBody ${LANG_ENGLISH} "An unprivileged account can replace this application data path ancestor:$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\nRepair the permissions to continue."
+  LangString unsafeApplicationDataDirectoryPageBody ${LANG_SIMPCHINESE} "非管理员账户可以替换此应用数据路径的上级目录：$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\n请修复权限后继续安装。"
+  LangString unsafeApplicationDataDirectoryPageBody ${LANG_TRADCHINESE} "非系統管理員帳戶可以取代此應用程式資料路徑的上層目錄：$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\n請修復權限後繼續安裝。"
+  LangString unsafeApplicationDataDirectoryPageBody ${LANG_FARSI} "یک حساب غیرمدیر می‌تواند این پوشهٔ بالادستی مسیر دادهٔ برنامه را جایگزین کند:$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\nبرای ادامه، مجوزها را اصلاح کنید."
+  LangString unsafeApplicationDataDirectoryPageBody ${LANG_RUSSIAN} "Учетная запись без прав администратора может заменить этот родительский каталог пути данных приложения:$\r$\n$unsafeInstallationAncestor$\r$\n$\r$\nИсправьте разрешения, чтобы продолжить."
 
   LangString repairInstallationPermissionsButton ${LANG_ENGLISH} "&Repair permissions"
   LangString repairInstallationPermissionsButton ${LANG_SIMPCHINESE} "修复权限(&R)"
@@ -515,48 +497,6 @@ FunctionEnd
   LangString repairingInstallationPermissions ${LANG_TRADCHINESE} "正在修復路徑權限..."
   LangString repairingInstallationPermissions ${LANG_FARSI} "در حال اصلاح مجوزهای مسیر..."
   LangString repairingInstallationPermissions ${LANG_RUSSIAN} "Исправление разрешений пути..."
-
-  LangString unsafeInstallationButton ${LANG_ENGLISH} "&Unsafe installation"
-  LangString unsafeInstallationButton ${LANG_SIMPCHINESE} "不安全安装(&U)"
-  LangString unsafeInstallationButton ${LANG_TRADCHINESE} "不安全安裝(&U)"
-  LangString unsafeInstallationButton ${LANG_FARSI} "&نصب ناامن"
-  LangString unsafeInstallationButton ${LANG_RUSSIAN} "&Небезопасная установка"
-
-  LangString unsafeInstallationConfirmationTitle ${LANG_ENGLISH} "Confirm unsafe installation"
-  LangString unsafeInstallationConfirmationTitle ${LANG_SIMPCHINESE} "确认不安全安装"
-  LangString unsafeInstallationConfirmationTitle ${LANG_TRADCHINESE} "確認不安全安裝"
-  LangString unsafeInstallationConfirmationTitle ${LANG_FARSI} "تأیید نصب ناامن"
-  LangString unsafeInstallationConfirmationTitle ${LANG_RUSSIAN} "Подтверждение небезопасной установки"
-
-  LangString unsafeInstallationConfirmationSubtitle ${LANG_ENGLISH} "Select the acknowledgement below to continue."
-  LangString unsafeInstallationConfirmationSubtitle ${LANG_SIMPCHINESE} "必须勾选下方确认项才能继续。"
-  LangString unsafeInstallationConfirmationSubtitle ${LANG_TRADCHINESE} "必須勾選下方確認項才能繼續。"
-  LangString unsafeInstallationConfirmationSubtitle ${LANG_FARSI} "برای ادامه باید تأیید زیر را انتخاب کنید."
-  LangString unsafeInstallationConfirmationSubtitle ${LANG_RUSSIAN} "Чтобы продолжить, установите флажок подтверждения ниже."
-
-  LangString unsafeInstallationConfirmationWarning ${LANG_ENGLISH} "The installer and service will skip path security checks and permission hardening. This can allow another program to replace AeroVPN data or binaries and elevate privileges to SYSTEM."
-  LangString unsafeInstallationConfirmationWarning ${LANG_SIMPCHINESE} "安装程序和守护进程将跳过路径安全检查与权限加固。这可能允许其他程序替换 AeroVPN 数据或程序文件并提权到 SYSTEM。"
-  LangString unsafeInstallationConfirmationWarning ${LANG_TRADCHINESE} "安裝程式和守護程序將略過路徑安全檢查與權限強化。這可能允許其他程式取代 AeroVPN 資料或程式檔案並將權限提升至 SYSTEM。"
-  LangString unsafeInstallationConfirmationWarning ${LANG_FARSI} "نصب‌کننده و سرویس، بررسی امنیت مسیر و ایمن‌سازی مجوزها را نادیده می‌گیرند. این کار ممکن است به برنامه‌ای دیگر اجازه دهد داده‌ها یا فایل‌های AeroVPN را جایگزین کند و سطح دسترسی را به SYSTEM برساند."
-  LangString unsafeInstallationConfirmationWarning ${LANG_RUSSIAN} "Установщик и служба пропустят проверку безопасности путей и усиление разрешений. Другая программа сможет подменить данные или файлы AeroVPN и повысить привилегии до SYSTEM."
-
-  LangString unsafeInstallationAcknowledgement ${LANG_ENGLISH} "I understand and accept this security risk."
-  LangString unsafeInstallationAcknowledgement ${LANG_SIMPCHINESE} "我理解并接受此安全风险。"
-  LangString unsafeInstallationAcknowledgement ${LANG_TRADCHINESE} "我理解並接受此安全風險。"
-  LangString unsafeInstallationAcknowledgement ${LANG_FARSI} "این خطر امنیتی را درک می‌کنم و می‌پذیرم."
-  LangString unsafeInstallationAcknowledgement ${LANG_RUSSIAN} "Я понимаю и принимаю этот риск безопасности."
-
-  LangString continueUnsafeInstallationButton ${LANG_ENGLISH} "Continue unsafe installation"
-  LangString continueUnsafeInstallationButton ${LANG_SIMPCHINESE} "继续不安全安装"
-  LangString continueUnsafeInstallationButton ${LANG_TRADCHINESE} "繼續不安全安裝"
-  LangString continueUnsafeInstallationButton ${LANG_FARSI} "ادامهٔ نصب ناامن"
-  LangString continueUnsafeInstallationButton ${LANG_RUSSIAN} "Продолжить небезопасную установку"
-
-  LangString returnToInstallationChoiceButton ${LANG_ENGLISH} "Return"
-  LangString returnToInstallationChoiceButton ${LANG_SIMPCHINESE} "返回"
-  LangString returnToInstallationChoiceButton ${LANG_TRADCHINESE} "返回"
-  LangString returnToInstallationChoiceButton ${LANG_FARSI} "بازگشت"
-  LangString returnToInstallationChoiceButton ${LANG_RUSSIAN} "Вернуться"
 
   LangString invalidInstallationPageTitle ${LANG_ENGLISH} "Unsupported installation path"
   LangString invalidInstallationPageTitle ${LANG_SIMPCHINESE} "不支持的安装路径"
@@ -631,6 +571,16 @@ FunctionEnd
   LangString removingService ${LANG_TRADCHINESE} "正在移除 AeroVPN 守護程序..."
   LangString removingService ${LANG_FARSI} "در حال حذف سرویس AeroVPN..."
   LangString removingService ${LANG_RUSSIAN} "Удаление службы AeroVPN..."
+  LangString restoringSystemProxy ${LANG_ENGLISH} "Restoring the previous Windows proxy settings..."
+  LangString restoringSystemProxy ${LANG_SIMPCHINESE} "正在恢复原有 Windows 系统代理设置..."
+  LangString restoringSystemProxy ${LANG_TRADCHINESE} "正在還原原有 Windows 系統代理設定..."
+  LangString restoringSystemProxy ${LANG_FARSI} "در حال بازیابی تنظیمات پراکسی قبلی ویندوز..."
+  LangString restoringSystemProxy ${LANG_RUSSIAN} "Восстановление прежних настроек прокси Windows..."
+  LangString restoreSystemProxyFailed ${LANG_ENGLISH} "AeroVPN could not restore the previous Windows proxy settings. Sign in as the Windows user who used AeroVPN and run the uninstaller again."
+  LangString restoreSystemProxyFailed ${LANG_SIMPCHINESE} "AeroVPN 无法恢复原有 Windows 系统代理设置。请使用曾运行 AeroVPN 的 Windows 账户重新运行卸载程序。"
+  LangString restoreSystemProxyFailed ${LANG_TRADCHINESE} "AeroVPN 無法還原原有 Windows 系統代理設定。請使用曾執行 AeroVPN 的 Windows 帳戶重新執行解除安裝程式。"
+  LangString restoreSystemProxyFailed ${LANG_FARSI} "AeroVPN نتوانست تنظیمات پراکسی قبلی ویندوز را بازیابی کند. با همان حساب کاربری ویندوز دوباره حذف را اجرا کنید."
+  LangString restoreSystemProxyFailed ${LANG_RUSSIAN} "AeroVPN не удалось восстановить прежние настройки прокси Windows. Повторите удаление из учетной записи Windows, в которой использовался AeroVPN."
 
   LangString removeServiceFailed ${LANG_ENGLISH} "Failed to remove the AeroVPN service (code $1).$\r$\n$\r$\n$3"
   LangString removeServiceFailed ${LANG_SIMPCHINESE} "无法移除 AeroVPN 守护进程（代码 $1）。$\r$\n$\r$\n$3"
@@ -795,11 +745,8 @@ FunctionEnd
 !macro customInit
   !insertmacro confirmNativeArchitecture
   !insertmacro setInstallationLayoutRegistryView
-  StrCpy $allowUnsafeInstallation 0
-  StrCpy $installationValidationAllowsUnsafe 0
   StrCpy $installationValidationMessage ""
   StrCpy $installationValidationRepairable 0
-  StrCpy $unsafeInstallationConfirmationRequested 0
   StrCpy $unsafeInstallationAncestor ""
   StrCpy $resetWorkingDirectory 0
   StrCpy $reinstallExistingInstallation 0
@@ -1021,7 +968,6 @@ FunctionEnd
 !macro customPageAfterChangeDir
   Page custom showDataDirectoriesPage leaveDataDirectoriesPage
   Page custom showInstallationDirectoryValidationPage
-  Page custom showUnsafeInstallationConfirmationPage
 
   Function expandInstallerToFitControl
     Exch $0
@@ -1150,11 +1096,8 @@ FunctionEnd
     ${if} $0 == ""
       StrCpy $INSTDIR "$INSTDIR\${APP_FILENAME}"
     ${endif}
-    StrCpy $allowUnsafeInstallation 0
-    StrCpy $installationValidationAllowsUnsafe 0
     StrCpy $installationValidationMessage ""
     StrCpy $installationValidationRepairable 0
-    StrCpy $unsafeInstallationConfirmationRequested 0
     StrCpy $unsafeInstallationAncestor ""
     StrCpy $installationValidationProcessHandle ""
     StrCpy $installationValidationProcessIDPath "$PLUGINSDIR\installation-validation-process-id.txt"
@@ -1272,8 +1215,6 @@ FunctionEnd
     Call setInstallationValidationMessage
     ${if} $installationValidationRepairable == 1
       !insertmacro MUI_HEADER_TEXT "$(repairPathPermissionsPageTitle)" "$(repairPathPermissionsPageSubtitle)"
-    ${elseif} $installationValidationAllowsUnsafe == 1
-      !insertmacro MUI_HEADER_TEXT "$(unsafeInstallationPageTitle)" "$(unsafeInstallationPageSubtitle)"
     ${else}
       !insertmacro MUI_HEADER_TEXT "$(invalidInstallationPageTitle)" "$(invalidInstallationPageSubtitle)"
     ${endif}
@@ -1281,110 +1222,51 @@ FunctionEnd
     ${NSD_CreateLabel} 0u 0u 100% 84u "$installationValidationMessage"
     Pop $0
 
-    ${if} $installationValidationAllowsUnsafe == 1
-      ${if} $installationValidationRepairable == 1
-        ${NSD_CreateButton} 0u 90u 100% 18u "$(repairInstallationPermissionsButton)"
-        Pop $installationValidationRepairButton
-        ${NSD_OnClick} $installationValidationRepairButton repairInstallationPermissions
-
-        ${NSD_CreateButton} 0u 112u 100% 18u "$(unsafeInstallationButton)"
-        Pop $installationValidationUnsafeButton
-        ${NSD_OnClick} $installationValidationUnsafeButton openUnsafeInstallationConfirmation
-      ${else}
-        ${NSD_CreateButton} 0u 90u 100% 18u "$(unsafeInstallationButton)"
-        Pop $installationValidationUnsafeButton
-        ${NSD_OnClick} $installationValidationUnsafeButton openUnsafeInstallationConfirmation
-      ${endif}
+    ${if} $installationValidationRepairable == 1
+      ${NSD_CreateButton} 0u 90u 100% 18u "$(repairInstallationPermissionsButton)"
+      Pop $installationValidationRepairButton
+      ${NSD_OnClick} $installationValidationRepairButton repairInstallationPermissions
     ${endif}
 
+    GetDlgItem $0 $HWNDPARENT 1
+    ShowWindow $0 ${SW_SHOW}
     GetDlgItem $0 $HWNDPARENT 2
+    EnableWindow $0 0
+    ShowWindow $0 ${SW_SHOW}
+    GetDlgItem $0 $HWNDPARENT 3
     ShowWindow $0 ${SW_SHOW}
     ${if} $installationValidationRepairable == 1
       SendMessage $installationValidationDialog ${WM_NEXTDLGCTL} $installationValidationRepairButton 1
     ${else}
+      GetDlgItem $0 $HWNDPARENT 1
       SendMessage $installationValidationDialog ${WM_NEXTDLGCTL} $0 1
     ${endif}
-    GetDlgItem $0 $HWNDPARENT 3
-    ShowWindow $0 ${SW_SHOW}
-  FunctionEnd
-
-  Function showUnsafeInstallationConfirmationPage
-    ${if} $installationValidationAllowsUnsafe != 1
-    ${orif} $unsafeInstallationConfirmationRequested != 1
-      Abort
-    ${endif}
-    !insertmacro MUI_HEADER_TEXT "$(unsafeInstallationConfirmationTitle)" "$(unsafeInstallationConfirmationSubtitle)"
-    nsDialogs::Create 1018
-    Pop $installationValidationDialog
-    ${if} $installationValidationDialog == error
-      Abort
-    ${endif}
-
-    ${NSD_CreateLabel} 0u 0u 100% 32u "$installationValidationMessage"
-    Pop $0
-
-    ${NSD_CreateLabel} 0u 34u 100% 35u "$(unsafeInstallationConfirmationWarning)"
-    Pop $0
-    SetCtlColors $0 "C42B1C" transparent
-
-    ${NSD_CreateCheckBox} 0u 73u 100% 12u "$(unsafeInstallationAcknowledgement)"
-    Pop $unsafeInstallationAcknowledgementCheckbox
-    ${NSD_SetState} $unsafeInstallationAcknowledgementCheckbox ${BST_UNCHECKED}
-    ${NSD_OnClick} $unsafeInstallationAcknowledgementCheckbox updateUnsafeInstallationAcknowledgement
-
-    ${NSD_CreateButton} 0u 91u 100% 18u "$(continueUnsafeInstallationButton)"
-    Pop $installationValidationUnsafeButton
-    ${NSD_OnClick} $installationValidationUnsafeButton continueUnsafeInstallation
-    EnableWindow $installationValidationUnsafeButton 0
-
-    ${NSD_CreateButton} 0u 113u 100% 18u "$(returnToInstallationChoiceButton)"
-    Pop $unsafeInstallationReturnButton
-    ${NSD_OnClick} $unsafeInstallationReturnButton returnToInstallationChoice
-
-    GetDlgItem $0 $HWNDPARENT 1
-    ShowWindow $0 ${SW_HIDE}
-    GetDlgItem $0 $HWNDPARENT 2
-    ShowWindow $0 ${SW_HIDE}
-    GetDlgItem $0 $HWNDPARENT 3
-    ShowWindow $0 ${SW_HIDE}
-    SendMessage $installationValidationDialog ${WM_NEXTDLGCTL} $unsafeInstallationReturnButton 1
-    nsDialogs::Show
   FunctionEnd
 
   Function setInstallationValidationMessage
-    StrCpy $installationValidationAllowsUnsafe 0
     StrCpy $installationValidationRepairable 0
     StrCpy $unsafeInstallationAncestor ""
     ${if} $1 == 10
-      StrCpy $installationValidationAllowsUnsafe 1
       StrCpy $installationValidationMessage "$(unsafeInstallationDirectory)"
     ${elseif} $1 == 11
-      StrCpy $installationValidationAllowsUnsafe 1
       StrCpy $installationValidationMessage "$(invalidInstallationAncestor)"
     ${elseif} $1 == 12
-      StrCpy $installationValidationAllowsUnsafe 1
       StrCpy $installationValidationMessage "$(untrustedInstallationAncestor)"
     ${elseif} $1 == 13
-      StrCpy $installationValidationAllowsUnsafe 1
       StrCpy $installationValidationRepairable 1
       StrCpy $unsafeInstallationAncestor "$0"
       StrCpy $installationValidationMessage "$(unsafeInstallationPageBody)"
     ${elseif} $1 == 14
-      StrCpy $installationValidationAllowsUnsafe 1
       StrCpy $installationValidationMessage "$(installationDriveNotFixed)"
     ${elseif} $1 == 15
-      StrCpy $installationValidationAllowsUnsafe 1
       StrCpy $installationValidationMessage "$(installationFileSystemNotNTFS)"
     ${elseif} $1 == 16
-      StrCpy $installationValidationAllowsUnsafe 1
       StrCpy $installationValidationMessage "$(installationVolumeNotVerified)"
     ${elseif} $1 == 17
-      StrCpy $installationValidationAllowsUnsafe 1
       StrCpy $installationValidationRepairable 1
       StrCpy $unsafeInstallationAncestor "$0"
       StrCpy $installationValidationMessage "$(unsafeDaemonDataDirectoryPageBody)"
     ${elseif} $1 == 18
-      StrCpy $installationValidationAllowsUnsafe 1
       StrCpy $installationValidationRepairable 1
       StrCpy $unsafeInstallationAncestor "$0"
       StrCpy $installationValidationMessage "$(unsafeApplicationDataDirectoryPageBody)"
@@ -1403,64 +1285,11 @@ FunctionEnd
     ${endif}
   FunctionEnd
 
-  Function openUnsafeInstallationConfirmation
-    Pop $0
-    StrCpy $unsafeInstallationConfirmationRequested 1
-    Call restoreInstallerNavigation
-    SendMessage $HWNDPARENT ${WM_COMMAND} 1 0
-  FunctionEnd
-
-  Function returnToInstallationChoice
-    Pop $0
-    StrCpy $unsafeInstallationConfirmationRequested 0
-    Call restoreInstallerNavigation
-    SendMessage $HWNDPARENT ${WM_COMMAND} 3 0
-  FunctionEnd
-
-  Function continueUnsafeInstallation
-    Pop $0
-    ${NSD_GetState} $unsafeInstallationAcknowledgementCheckbox $0
-    ${if} $0 != ${BST_CHECKED}
-      Return
-    ${endif}
-    StrCpy $allowUnsafeInstallation 1
-    !insertmacro showPendingInstallerOperation "$(checkingInstallationLocations)"
-    !insertmacro executeInstallationPreflight "-AllowUnsafeInstallationDirectory"
-    ${if} $1 == 0
-      Call advanceInstallationDirectoryValidationPage
-    ${elseif} $1 == 20
-    ${orif} $1 == 21
-    ${orif} $1 == 22
-      MessageBox MB_YESNO|MB_ICONEXCLAMATION|MB_DEFBUTTON1 "$(resetWorkingDirectoryPrompt)" IDYES acceptWorkingDirectoryResetAfterUnsafeChoice IDNO declineWorkingDirectoryResetAfterUnsafeChoice
-      acceptWorkingDirectoryResetAfterUnsafeChoice:
-        StrCpy $resetWorkingDirectory 1
-        Call advanceInstallationDirectoryValidationPage
-        Return
-      declineWorkingDirectoryResetAfterUnsafeChoice:
-        Return
-    ${else}
-      StrCpy $allowUnsafeInstallation 0
-      Call setInstallationValidationMessage
-      MessageBox MB_OK|MB_ICONSTOP "$installationValidationMessage"
-    ${endif}
-  FunctionEnd
-
-  Function updateUnsafeInstallationAcknowledgement
-    Pop $0
-    ${NSD_GetState} $unsafeInstallationAcknowledgementCheckbox $0
-    ${if} $0 == ${BST_CHECKED}
-      EnableWindow $installationValidationUnsafeButton 1
-    ${else}
-      EnableWindow $installationValidationUnsafeButton 0
-    ${endif}
-  FunctionEnd
-
   Function repairInstallationPermissions
     Pop $0
     !insertmacro showPendingInstallerOperation "$(repairingInstallationPermissions)"
     !insertmacro executeInstallationPreflight "-RepairPathAncestors"
     ${if} $1 == 0
-      StrCpy $allowUnsafeInstallation 0
       Call advanceInstallationDirectoryValidationPage
     ${elseif} $1 == 20
     ${orif} $1 == 21
@@ -1468,7 +1297,6 @@ FunctionEnd
       MessageBox MB_YESNO|MB_ICONEXCLAMATION|MB_DEFBUTTON1 "$(resetWorkingDirectoryPrompt)" IDYES acceptWorkingDirectoryResetAfterRepair IDNO declineWorkingDirectoryResetAfterRepair
       acceptWorkingDirectoryResetAfterRepair:
         StrCpy $resetWorkingDirectory 1
-        StrCpy $allowUnsafeInstallation 0
         Call advanceInstallationDirectoryValidationPage
         Return
       declineWorkingDirectoryResetAfterRepair:
@@ -1485,13 +1313,13 @@ FunctionEnd
     GetDlgItem $0 $HWNDPARENT 1
     ShowWindow $0 ${SW_SHOW}
     GetDlgItem $0 $HWNDPARENT 2
+    EnableWindow $0 1
     ShowWindow $0 ${SW_SHOW}
     GetDlgItem $0 $HWNDPARENT 3
     ShowWindow $0 ${SW_SHOW}
   FunctionEnd
 
   Function advanceInstallationDirectoryValidationPage
-    StrCpy $unsafeInstallationConfirmationRequested 0
     Call restoreInstallerNavigation
     SendMessage $HWNDPARENT ${WM_COMMAND} 1 0
   FunctionEnd
@@ -1528,11 +1356,7 @@ FunctionEnd
   ${endif}
   ${if} $resetWorkingDirectory == 1
     DetailPrint "$(resettingWorkingDirectory)"
-    ${if} $allowUnsafeInstallation == 1
-      nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$PLUGINSDIR\installer-preflight.ps1" -InstallationDirectory "$INSTDIR" -ApplicationDataDirectory "$applicationDataDirectory" -DaemonWorkingDirectory "$daemonDataDirectory" -InstallationID "$installationID" -AllowUnsafeInstallationDirectory -ResetWorkingDirectory'
-    ${else}
-      nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$PLUGINSDIR\installer-preflight.ps1" -InstallationDirectory "$INSTDIR" -ApplicationDataDirectory "$applicationDataDirectory" -DaemonWorkingDirectory "$daemonDataDirectory" -InstallationID "$installationID" -ResetWorkingDirectory'
-    ${endif}
+    nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$PLUGINSDIR\installer-preflight.ps1" -InstallationDirectory "$INSTDIR" -ApplicationDataDirectory "$applicationDataDirectory" -DaemonWorkingDirectory "$daemonDataDirectory" -InstallationID "$installationID" -ResetWorkingDirectory'
     Pop $1
     ${if} $1 != 0
       Abort "$(resetWorkingDirectoryFailed)"
@@ -1540,11 +1364,7 @@ FunctionEnd
   ${endif}
   validateInstallationDirectory:
   DetailPrint "$(checkingInstallationLocations)"
-  ${if} $allowUnsafeInstallation == 1
-    !insertmacro executeInstallationPreflight "-AllowUnsafeInstallationDirectory"
-  ${else}
-    !insertmacro executeInstallationPreflight ""
-  ${endif}
+  !insertmacro executeInstallationPreflight ""
   ${if} $1 == 13
   ${orif} $1 == 17
   ${orif} $1 == 18
@@ -1578,11 +1398,7 @@ FunctionEnd
   ${endif}
   ${if} $applicationDataDirectory != ""
     DetailPrint "$(preparingApplicationDataDirectory)"
-    ${if} $allowUnsafeInstallation == 1
-      !insertmacro executeInstallationPreflight "-AllowUnsafeInstallationDirectory -PrepareApplicationDataDirectory"
-    ${else}
-      !insertmacro executeInstallationPreflight "-PrepareApplicationDataDirectory"
-    ${endif}
+    !insertmacro executeInstallationPreflight "-PrepareApplicationDataDirectory"
     ${if} $1 != 0
       Call setInstallationValidationMessage
       Abort "$installationValidationMessage"
@@ -1633,15 +1449,29 @@ FunctionEnd
   ${endif}
 !macroend
 
+!macro restoreUserSystemProxy
+  ${if} $applicationDataDirectory == ""
+    SetShellVarContext current
+    StrCpy $2 "$APPDATA\sing-box\windows-system-proxy-backup.json"
+    SetShellVarContext all
+  ${else}
+    StrCpy $2 "$applicationDataDirectory\windows-system-proxy-backup.json"
+  ${endif}
+  ${if} ${FileExists} "$2"
+    DetailPrint "$(restoringSystemProxy)"
+    nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\resources\windows-system-proxy.ps1" -Action restore -StateFile "$2"'
+    Pop $1
+    ${if} $1 != 0
+      Abort "$(restoreSystemProxyFailed)"
+    ${endif}
+  ${endif}
+!macroend
+
 !macro customInstall
   !insertmacro daemonExecutable $0
   SetDetailsPrint both
   DetailPrint "$(registeringService)"
-  ${if} $allowUnsafeInstallation == 1
-    !insertmacro executeDaemonServiceCommand "install" "-AllowUnsafeInstallationDirectoryPermissions" $1 $3
-  ${else}
-    !insertmacro executeDaemonServiceCommand "install" "" $1 $3
-  ${endif}
+  !insertmacro executeDaemonServiceCommand "install" "" $1 $3
   ${if} $1 != 0
     StrCpy $5 $1
     DetailPrint "$(rollingBackInstallation)"
@@ -1814,6 +1644,7 @@ FunctionEnd
         Abort "$(removeServiceFailed)"
       ${endif}
     ${endif}
+    !insertmacro restoreUserSystemProxy
     !insertmacro unregisterTaildropVerb
     ${if} $keepUninstallData == ${BST_UNCHECKED}
       DetailPrint "$(removingData)"

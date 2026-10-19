@@ -5,6 +5,7 @@ import { createServer } from "node:net";
 import { join } from "node:path";
 
 import { AERO_AUTH_CALL } from "../shared/ipc";
+import { ServiceStatus_Type } from "../shared/gen/daemon/started_service_pb";
 import { AERO_MANAGED_MODE } from "../shared/appPolicy";
 import type {
   AeroAccountSnapshot,
@@ -16,10 +17,26 @@ import type {
   AeroRegionSnapshot,
   ProfilesResult,
 } from "../shared/ipc";
-import { startAeroManagedConfig, stopAeroManagedService } from "./profiles";
+import { startAeroManagedConfig, stopAeroManagedService as stopManagedServiceDaemon } from "./profiles";
+import { daemonState } from "./state";
+import { enableWindowsSystemProxy, restoreWindowsSystemProxy } from "./systemProxyWindows";
 
 const API_BASE_URL = "https://www.ethworldcupcoin.xyz:8443";
 const API_TIMEOUT_MILLISECONDS = 15_000;
+const AERO_DIRECT_DOMAINS = [
+  "ethworldcupcoin.xyz",
+  "aerovpn.com",
+  "api.aerovpn.com",
+  ".cn",
+  ".xn--fiqs8s",
+];
+const SYSTEM_PROXY_BYPASS_DOMAINS = [
+  "<local>",
+  "localhost",
+  "127.*",
+  "[::1]",
+  ...AERO_DIRECT_DOMAINS,
+];
 
 interface StoredSession {
   accessToken: string;
@@ -41,6 +58,12 @@ class AeroAuthError extends Error {
 
 let cachedSession: StoredSession | null | undefined;
 let refreshInFlight: Promise<StoredSession> | null = null;
+let pendingSystemProxyConnections = 0;
+
+async function stopAeroManagedService(): Promise<void> {
+  await stopManagedServiceDaemon();
+  await restoreWindowsSystemProxy();
+}
 
 function sessionPath(): string {
   return join(app.getPath("userData"), "aerovpn-session.bin");
@@ -482,7 +505,6 @@ function buildConnectionConfig(
   options: AeroConnectionOptions,
 ): string {
   const proxy = buildNodeOutbound(protocol, nodeSpec);
-  const directDomains = ["ethworldcupcoin.xyz", "aerovpn.com", "api.aerovpn.com", ".cn", ".xn--fiqs8s"];
   const tunInbound: Record<string, unknown> = {
     type: "tun",
     tag: "tun-in",
@@ -492,25 +514,12 @@ function buildConnectionConfig(
     strict_route: mode === "tun",
   };
   const inbounds: Record<string, unknown>[] = mode === "system_proxy"
-    ? [
-        {
-          type: "mixed",
-          tag: "mixed-in",
-          listen: "127.0.0.1",
-          listen_port: options.localPort,
-        },
-        {
-          ...tunInbound,
-          platform: {
-            http_proxy: {
-              enabled: true,
-              server: "127.0.0.1",
-              server_port: options.localPort,
-              bypass_domain: ["<local>", "localhost", "127.*", "[::1]", ...directDomains],
-            },
-          },
-        },
-      ]
+    ? [{
+        type: "mixed",
+        tag: "mixed-in",
+        listen: "127.0.0.1",
+        listen_port: options.localPort,
+      }]
     : [tunInbound];
   const config = {
     log: { level: "warn", timestamp: true },
@@ -531,7 +540,7 @@ function buildConnectionConfig(
             { type: "local", tag: "local-dns" },
           ],
       rules: [
-        { domain_suffix: directDomains, action: "route", server: "local-dns" },
+        { domain_suffix: AERO_DIRECT_DOMAINS, action: "route", server: "local-dns" },
       ],
       final: "remote-dns",
       strategy: "ipv4_only",
@@ -544,11 +553,13 @@ function buildConnectionConfig(
       rules: [
         { action: "sniff" },
         { protocol: "dns", action: "hijack-dns" },
-        { inbound: ["tun-in"], ip_cidr: ["172.19.0.0/30", "fdfe:dcba:9876::/126"], action: "reject", method: "drop" },
+        ...(mode === "tun"
+          ? [{ inbound: ["tun-in"], ip_cidr: ["172.19.0.0/30", "fdfe:dcba:9876::/126"], action: "reject", method: "drop" }]
+          : []),
         ...(options.routingMode === "auto"
           ? [
               { ip_is_private: true, outbound: "direct" },
-              { domain_suffix: directDomains, outbound: "direct" },
+              { domain_suffix: AERO_DIRECT_DOMAINS, outbound: "direct" },
             ]
           : []),
       ],
@@ -636,21 +647,32 @@ async function connect(
   });
   const { connection, nodeSpec } = parseConnectionResponse(response);
   const config = buildConnectionConfig(connection.protocol, nodeSpec, mode, options);
+  if (mode === "system_proxy") {
+    pendingSystemProxyConnections++;
+  }
   try {
+    if (mode !== "system_proxy") {
+      await restoreWindowsSystemProxy();
+    }
     await startAeroManagedConfig(config);
+    if (mode === "system_proxy") {
+      await enableWindowsSystemProxy(options.localPort, SYSTEM_PROXY_BYPASS_DOMAINS);
+    }
+    const session = readSession();
+    if (session === null) {
+      throw new AeroAuthError("Your account session expired while connecting.", 401);
+    }
+    writeSession({ ...session, connection });
+    return connection;
   } catch (error) {
     await stopAeroManagedService().catch(() => {});
     await authorizedRequest("/v1/connect/revoke", "POST", { session_id: connection.sessionId }).catch(() => {});
     throw error;
+  } finally {
+    if (mode === "system_proxy") {
+      pendingSystemProxyConnections--;
+    }
   }
-  const session = readSession();
-  if (session === null) {
-    await stopAeroManagedService().catch(() => {});
-    await authorizedRequest("/v1/connect/revoke", "POST", { session_id: connection.sessionId }).catch(() => {});
-    throw new AeroAuthError("Your account session expired while connecting.", 401);
-  }
-  writeSession({ ...session, connection });
-  return connection;
 }
 
 async function disconnect(): Promise<void> {
@@ -796,6 +818,20 @@ function requiredString(value: unknown, name: string): string {
 }
 
 export function registerAeroAuth(): void {
+  if (AERO_MANAGED_MODE && process.platform === "win32") {
+    daemonState.on("status", () => {
+      if (
+        pendingSystemProxyConnections === 0 &&
+        (daemonState.status === ServiceStatus_Type.IDLE ||
+          daemonState.status === ServiceStatus_Type.FATAL)
+      ) {
+        void restoreWindowsSystemProxy().catch((error: unknown) => {
+          console.error("restore Windows system proxy after service stop:", error);
+        });
+      }
+    });
+  }
+
   ipcMain.handle(
     AERO_AUTH_CALL,
     async (_event, method: string, ...args: unknown[]): Promise<ProfilesResult> => {

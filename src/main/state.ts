@@ -137,12 +137,14 @@ class DaemonState extends EventEmitter {
           { signal: session.signal },
         )) {
           this.status = message.status ?? ServiceStatus_Type.IDLE;
+          this.emit("status");
           this.emit("change");
         }
       } catch {}
       session.abort();
       this.status = null;
       this.groups = [];
+      this.emit("status");
       this.emit("change");
       await sleep(SESSION_RESTART_DELAY);
     }

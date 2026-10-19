@@ -446,7 +446,7 @@ if (!singleInstanceLock) {
   app.setAsDefaultProtocolClient("aerovpn");
   app.setAsDefaultProtocolClient("sing-box");
   if (process.platform === "win32") {
-    app.setAppUserModelId("io.nekohasekai.sfw");
+    app.setAppUserModelId("com.aerovpn.desktop");
   }
 
   app.on("second-instance", (_event, argv, workingDirectory) => {
