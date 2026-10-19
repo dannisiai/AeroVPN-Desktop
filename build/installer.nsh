@@ -840,6 +840,7 @@ FunctionEnd
   File /oname=$PLUGINSDIR\installer-service.ps1 "${BUILD_RESOURCES_DIR}\installer-service.ps1"
   File /oname=$PLUGINSDIR\installer-data.ps1 "${BUILD_RESOURCES_DIR}\installer-data.ps1"
   File /oname=$PLUGINSDIR\installer-stop-service.ps1 "${BUILD_RESOURCES_DIR}\installer-stop-service.ps1"
+  File /oname=$PLUGINSDIR\windows-system-proxy.ps1 "${BUILD_RESOURCES_DIR}\windows-system-proxy.ps1"
   ${if} ${FileExists} "$dataTransitionStatePath"
     nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$PLUGINSDIR\installer-data.ps1" -Operation Recover -StatePath "$dataTransitionStatePath"'
     Pop $0
@@ -1453,12 +1454,6 @@ FunctionEnd
   ${endif}
 !macroend
 
-!macro customInstallBeforeRemovingPreviousVersion
-  ${if} $hasExistingInstallation == 1
-    DetailPrint "$(removingPreviousVersion)"
-  ${endif}
-!macroend
-
 !macro customInstallBeforeApplicationFiles
   DetailPrint "$(copyingApplicationFiles)"
 !macroend
@@ -1479,11 +1474,18 @@ FunctionEnd
   ${endif}
   ${if} ${FileExists} "$2"
     DetailPrint "$(restoringSystemProxy)"
-    nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\resources\windows-system-proxy.ps1" -Action restore -StateFile "$2"'
+    nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$PLUGINSDIR\windows-system-proxy.ps1" -Action restore -StateFile "$2"'
     Pop $1
     ${if} $1 != 0
       Abort "$(restoreSystemProxyFailed)"
     ${endif}
+  ${endif}
+!macroend
+
+!macro customInstallBeforeRemovingPreviousVersion
+  ${if} $hasExistingInstallation == 1
+    DetailPrint "$(removingPreviousVersion)"
+    !insertmacro restoreUserSystemProxy
   ${endif}
 !macroend
 
@@ -1655,6 +1657,7 @@ FunctionEnd
   InitPluginsDir
   File /oname=$PLUGINSDIR\installer-service.ps1 "${BUILD_RESOURCES_DIR}\installer-service.ps1"
   File /oname=$PLUGINSDIR\installer-preflight.ps1 "${BUILD_RESOURCES_DIR}\installer-preflight.ps1"
+  File /oname=$PLUGINSDIR\windows-system-proxy.ps1 "${BUILD_RESOURCES_DIR}\windows-system-proxy.ps1"
   ${GetParameters} $R0
   ${GetOptions} $R0 "--delete-app-data" $R1
   ${ifNot} ${Errors}

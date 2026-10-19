@@ -39,7 +39,10 @@ function Save-RegistryValues {
           $null,
           [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames
         )
-        if ($kind -eq [Microsoft.Win32.RegistryValueKind]::Binary) {
+        if (
+          $kind -eq [Microsoft.Win32.RegistryValueKind]::Binary -or
+          $kind -eq [Microsoft.Win32.RegistryValueKind]::None
+        ) {
           $data = [Convert]::ToBase64String($data)
         }
         $record.Exists = $true
@@ -74,12 +77,19 @@ function Restore-RegistryValues {
       }
 
       $kind = [Microsoft.Win32.RegistryValueKind]([string]$record.Kind)
-      $data = switch ($kind) {
-        Binary { [Convert]::FromBase64String([string]$record.Data) }
-        DWord { [int]$record.Data }
-        QWord { [long]$record.Data }
-        MultiString { [string[]]@($record.Data) }
-        default { [string]$record.Data }
+      if (
+        $kind -eq [Microsoft.Win32.RegistryValueKind]::Binary -or
+        $kind -eq [Microsoft.Win32.RegistryValueKind]::None
+      ) {
+        $data = [byte[]][Convert]::FromBase64String([string]$record.Data)
+      } elseif ($kind -eq [Microsoft.Win32.RegistryValueKind]::DWord) {
+        $data = [int]$record.Data
+      } elseif ($kind -eq [Microsoft.Win32.RegistryValueKind]::QWord) {
+        $data = [long]$record.Data
+      } elseif ($kind -eq [Microsoft.Win32.RegistryValueKind]::MultiString) {
+        $data = [string[]]@($record.Data)
+      } else {
+        $data = [string]$record.Data
       }
       $key.SetValue([string]$record.Name, $data, $kind)
     }
