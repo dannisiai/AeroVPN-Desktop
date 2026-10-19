@@ -35,7 +35,9 @@ const SYSTEM_PROXY_BYPASS_DOMAINS = [
   "localhost",
   "127.*",
   "[::1]",
-  ...AERO_DIRECT_DOMAINS,
+  ...AERO_DIRECT_DOMAINS.map((domain) =>
+    domain.startsWith(".") ? `*${domain}` : domain,
+  ),
 ];
 
 interface StoredSession {
