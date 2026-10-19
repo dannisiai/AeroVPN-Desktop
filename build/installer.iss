@@ -282,9 +282,12 @@ var
 begin
   Parameters := '-NoProfile -NonInteractive -Command "$ErrorActionPreference = ''Stop''; ' +
     '$service = Get-Service -Name ''sing-box-daemon'' -ErrorAction SilentlyContinue; ' +
-    'if ($null -ne $service) { Stop-Service -Name ''sing-box-daemon'' -Force -ErrorAction Stop; ' +
+    'if ($null -ne $service) { $service.Refresh(); ' +
+    'if ($service.Status -ne [System.ServiceProcess.ServiceControllerStatus]::Stopped) { ' +
+    'if ($service.Status -ne [System.ServiceProcess.ServiceControllerStatus]::StopPending) { ' +
+    'Stop-Service -Name ''sing-box-daemon'' -Force -ErrorAction Stop; } ' +
     '$service.WaitForStatus([System.ServiceProcess.ServiceControllerStatus]::Stopped, ' +
-    '[TimeSpan]::FromSeconds(10)) }"';
+    '[TimeSpan]::FromSeconds(30)) } }; exit 0"';
   Result := RunPowerShell(Parameters, ResultCode) and (ResultCode = 0);
 end;
 
