@@ -886,6 +886,7 @@ FunctionEnd
   File /oname=$PLUGINSDIR\installer-preflight.ps1 "${BUILD_RESOURCES_DIR}\installer-preflight.ps1"
   File /oname=$PLUGINSDIR\installer-service.ps1 "${BUILD_RESOURCES_DIR}\installer-service.ps1"
   File /oname=$PLUGINSDIR\installer-data.ps1 "${BUILD_RESOURCES_DIR}\installer-data.ps1"
+  File /oname=$PLUGINSDIR\installer-stop-service.ps1 "${BUILD_RESOURCES_DIR}\installer-stop-service.ps1"
   ${if} ${FileExists} "$dataTransitionStatePath"
     nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$PLUGINSDIR\installer-data.ps1" -Operation Recover -StatePath "$dataTransitionStatePath"'
     Pop $0
@@ -1588,7 +1589,7 @@ FunctionEnd
     ${endif}
   ${endif}
   DetailPrint "$(stoppingService)"
-  nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -Command "if (Get-Service -Name sing-box-daemon -ErrorAction SilentlyContinue) { Stop-Service -Name sing-box-daemon -Force -ErrorAction Stop; (Get-Service -Name sing-box-daemon).WaitForStatus([System.ServiceProcess.ServiceControllerStatus]::Stopped, [TimeSpan]::FromSeconds(10)) }"'
+  nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$PLUGINSDIR\installer-stop-service.ps1"'
   Pop $1
   ${if} $1 != 0
     Abort "$(stopServiceFailed)"
@@ -1778,7 +1779,7 @@ FunctionEnd
 !macroend
 
 !macro customUnInit
-  StrCpy $keepUninstallData ${BST_CHECKED}
+  StrCpy $keepUninstallData ${BST_UNCHECKED}
   !insertmacro setInstallationLayoutRegistryView
   StrCpy $applicationDataDirectory ""
   StrCpy $installationID ""

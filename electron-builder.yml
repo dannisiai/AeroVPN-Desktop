@@ -79,7 +79,24 @@ win:
     - from: bin/windows/${arch}/windows_share.node
       to: native/windows_share.node
   target:
-    - dir
+    - nsis
+  artifactName: AeroVPN-${version}-${arch}.${ext}
+nsis:
+  oneClick: false
+  buildUniversalInstaller: false
+  differentialPackage: false
+  installerLanguages:
+    - en_US
+    - zh_CN
+    - zh_TW
+    - ru_RU
+  license: LICENSE
+  perMachine: true
+  allowToChangeInstallationDirectory: false
+  deleteAppDataOnUninstall: false
+  include: build/installer.nsh
+  artifactName: AeroVPN-${version}-${arch}.${ext}
+  uninstallDisplayName: AeroVPN
 linux:
   appId: io.nekohasekai.sfl
   syncDesktopName: true

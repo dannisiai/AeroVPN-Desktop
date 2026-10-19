@@ -62,24 +62,6 @@ jobs:
           cache: pnpm
           cache-dependency-path: AeroVPN-Desktop/pnpm-lock.yaml
 
-      - name: Install Inno Setup 6.7.3
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $installer = Join-Path $env:RUNNER_TEMP 'innosetup-6.7.3.exe'
-          $url = 'https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe'
-          Invoke-WebRequest -Uri $url -OutFile $installer
-          $signature = Get-AuthenticodeSignature -LiteralPath $installer
-          if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch 'Pyrsys') {
-            throw "Inno Setup installer signature validation failed: $($signature.Status) / $($signature.SignerCertificate.Subject)"
-          }
-          $process = Start-Process -FilePath $installer -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' -Wait -PassThru
-          if ($process.ExitCode -ne 0) { throw "Inno Setup installer exited with $($process.ExitCode)" }
-          $programFilesX86 = [Environment]::GetEnvironmentVariable('ProgramFiles(x86)')
-          $compiler = Join-Path $programFilesX86 'Inno Setup 6/ISCC.exe'
-          if (-not (Test-Path -LiteralPath $compiler -PathType Leaf)) { throw 'Inno Setup 6 ISCC.exe was not installed.' }
-          "INNO_SETUP_COMPILER=$compiler" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-
       - name: Locate Windows SDK SignTool
         shell: pwsh
         run: |

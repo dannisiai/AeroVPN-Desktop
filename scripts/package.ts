@@ -264,6 +264,7 @@ async function runWindowsElectronBuilder(
   artifactArchitecture: string,
   signingConfiguration: WindowsSigningConfiguration,
 ): Promise<void> {
+  const artifactName = `AeroVPN-\${version}-${artifactArchitecture}${developmentPackage ? "-dev" : ""}.\${ext}`;
   const unpackedDirectory = {
     x64: "win-unpacked",
     x86: "win-ia32-unpacked",
@@ -288,7 +289,7 @@ async function runWindowsElectronBuilder(
   try {
     await buildElectronApplication({
       projectDir: repositoryRoot,
-      targets: Platform.WINDOWS.createTarget("dir", architecture),
+      targets: Platform.WINDOWS.createTarget("nsis", architecture),
       publish: "never",
       config: {
         compression: developmentPackage ? "store" : undefined,
@@ -296,57 +297,14 @@ async function runWindowsElectronBuilder(
         extraMetadata: { version: readApplicationVersion() },
         npmRebuild: false,
         win: {
+          artifactName,
           signtoolOptions: {
             certificateFile: signingConfiguration.certificateFile,
             certificatePassword: signingConfiguration.certificatePassword,
           },
         },
+        nsis: { artifactName, warningsAsErrors: false },
       },
-    });
-
-    const installerCompiler = process.env.INNO_SETUP_COMPILER ?? "ISCC.exe";
-    const installerScript = path.join(repositoryRoot, "build", "installer.iss");
-    const installerSigningScript = path.join(
-      repositoryRoot,
-      "build",
-      "sign-installer.ps1",
-    );
-    const installerOutputDirectory = path.join(repositoryRoot, "release");
-    const appDirectory = path.join(
-      repositoryRoot,
-      "release",
-      unpackedDirectory,
-    );
-    const installerArchitecture = {
-      x64: 64,
-      x86: 32,
-      arm64: 128,
-    }[artifactArchitecture as "x64" | "x86" | "arm64"];
-    if (installerArchitecture === undefined) {
-      throw new Error(
-        `Unsupported Windows installer architecture: ${artifactArchitecture}`,
-      );
-    }
-    if (!fs.existsSync(path.join(appDirectory, "AeroVPN.exe"))) {
-      throw new Error(`Electron application directory is missing: ${appDirectory}`);
-    }
-    const signToolCommand =
-      `powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File ` +
-      `$q${installerSigningScript}$q -FilePath $f`;
-    const installerArguments = [
-      `/Sci=${signToolCommand}`,
-      `/DSourceRoot=${repositoryRoot}`,
-      `/DAppDirectory=${appDirectory}`,
-      `/DOutputDirectory=${installerOutputDirectory}`,
-      `/DAppVersion=${readApplicationVersion()}`,
-      `/DArtifactArchitecture=${installerArchitecture}`,
-      ...(developmentPackage ? ["/DSetupSuffix=-dev"] : []),
-      installerScript,
-    ];
-    runChecked(installerCompiler, installerArguments, {
-      ...process.env,
-      AEROVPN_SIGNING_CERTIFICATE: signingConfiguration.certificateFile,
-      AEROVPN_SIGNING_PASSWORD: signingConfiguration.certificatePassword,
     });
   } finally {
     if (previousBuildCacheSetting === undefined) {
