@@ -440,13 +440,16 @@ function buildNodeOutbound(protocolValue: string, nodeSpec: Record<string, unkno
       throw new Error("The server returned incomplete Hysteria2 credentials.");
     }
     const obfsValue = isRecord(nodeSpec.obfs) ? nodeSpec.obfs : isRecord(tls.obfs) ? tls.obfs : null;
+    const alpn = Array.isArray(tls.alpn)
+      ? tls.alpn.filter((value): value is string => typeof value === "string" && value !== "")
+      : [];
     const outbound: Record<string, unknown> = {
       type: "hysteria2",
       tag: "proxy",
       server,
       server_port: serverPort,
       password: nodeSpec.password,
-      tls: { enabled: true, server_name: serverName },
+      tls: { enabled: true, server_name: serverName, ...(alpn.length > 0 ? { alpn } : {}) },
     };
     if (obfsValue !== null) {
       if (typeof obfsValue.password !== "string" || obfsValue.password === "") {
