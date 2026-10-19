@@ -665,7 +665,7 @@ try {
             Get-InstallationAncestorPaths $InstallationDirectory $installationVolume
         )
         $unsafeInstallationAncestor = Get-UnsafeInstallationAncestor $installationAncestorPaths
-        if ($RepairPathAncestors) {
+        if ($RepairPathAncestors -and -not $AllowUnprotectedApplicationDirectory) {
             Repair-PathAncestorPermissions $installationAncestorPaths
             $unsafeInstallationAncestor = Get-UnsafeInstallationAncestor $installationAncestorPaths
             if ($null -ne $unsafeInstallationAncestor) {

@@ -24,6 +24,9 @@ SetFont "Segoe UI" 9
   Var installationValidationResult
   Var installationValidationOutput
   Var unsafeInstallationAncestor
+  Var allowUnsafeInstallationDirectory
+  Var preflightOptions
+  Var unsafeServiceInstallOption
   Var resetWorkingDirectory
   Var workingDirectory
   Var installationActionDialog
@@ -745,6 +748,9 @@ FunctionEnd
 !macro customInit
   !insertmacro confirmNativeArchitecture
   !insertmacro setInstallationLayoutRegistryView
+  StrCpy $allowUnsafeInstallationDirectory 0
+  StrCpy $preflightOptions ""
+  StrCpy $unsafeServiceInstallOption ""
   StrCpy $installationValidationMessage ""
   StrCpy $installationValidationRepairable 0
   StrCpy $unsafeInstallationAncestor ""
@@ -933,7 +939,11 @@ FunctionEnd
 
 !macro executeInstallationPreflight OPTIONS
   Delete "$PLUGINSDIR\installation-preflight-output.txt"
-  nsExec::Exec '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$PLUGINSDIR\installer-preflight.ps1" -InstallationDirectory "$INSTDIR" -ApplicationDataDirectory "$applicationDataDirectory" -DaemonWorkingDirectory "$daemonDataDirectory" -InstallationID "$installationID" -ResultOutputPath "$PLUGINSDIR\installation-preflight-output.txt" ${OPTIONS}'
+  StrCpy $preflightOptions ""
+  ${if} $allowUnsafeInstallationDirectory == 1
+    StrCpy $preflightOptions "-AllowUnprotectedApplicationDirectory"
+  ${endif}
+  nsExec::Exec '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$PLUGINSDIR\installer-preflight.ps1" -InstallationDirectory "$INSTDIR" -ApplicationDataDirectory "$applicationDataDirectory" -DaemonWorkingDirectory "$daemonDataDirectory" -InstallationID "$installationID" -ResultOutputPath "$PLUGINSDIR\installation-preflight-output.txt" ${OPTIONS} $preflightOptions'
   Pop $1
   StrCpy $0 ""
   ClearErrors
@@ -947,7 +957,7 @@ FunctionEnd
 
 !macro executeInstallationPreflightAsync OPTIONS
   ClearErrors
-  ExecShell "open" "$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" '-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "$PLUGINSDIR\installer-preflight.ps1" -InstallationDirectory "$INSTDIR" -ApplicationDataDirectory "$applicationDataDirectory" -DaemonWorkingDirectory "$daemonDataDirectory" -InstallationID "$installationID" -ResultOutputPath "$installationValidationOutputPath" -ResultCodePath "$installationValidationResultPath" -ProcessIDPath "$installationValidationProcessIDPath" ${OPTIONS}' SW_HIDE
+  ExecShell "open" "$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" '-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "$PLUGINSDIR\installer-preflight.ps1" -InstallationDirectory "$INSTDIR" -ApplicationDataDirectory "$applicationDataDirectory" -DaemonWorkingDirectory "$daemonDataDirectory" -InstallationID "$installationID" -ResultOutputPath "$installationValidationOutputPath" -ResultCodePath "$installationValidationResultPath" -ProcessIDPath "$installationValidationProcessIDPath" ${OPTIONS} -AllowUnprotectedApplicationDirectory' SW_HIDE
   ${if} ${Errors}
     StrCpy $0 "error"
   ${else}
@@ -1354,9 +1364,19 @@ FunctionEnd
   ${if} $0 == ""
     StrCpy $INSTDIR "$INSTDIR\${APP_FILENAME}"
   ${endif}
+  StrCpy $allowUnsafeInstallationDirectory 0
+  !insertmacro executeInstallationPreflight ""
+  ${if} $1 == 12
+  ${orif} $1 == 13
+    StrCpy $allowUnsafeInstallationDirectory 1
+  ${endif}
   ${if} $resetWorkingDirectory == 1
     DetailPrint "$(resettingWorkingDirectory)"
-    nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$PLUGINSDIR\installer-preflight.ps1" -InstallationDirectory "$INSTDIR" -ApplicationDataDirectory "$applicationDataDirectory" -DaemonWorkingDirectory "$daemonDataDirectory" -InstallationID "$installationID" -ResetWorkingDirectory'
+    StrCpy $preflightOptions ""
+    ${if} $allowUnsafeInstallationDirectory == 1
+      StrCpy $preflightOptions "-AllowUnprotectedApplicationDirectory"
+    ${endif}
+    nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$PLUGINSDIR\installer-preflight.ps1" -InstallationDirectory "$INSTDIR" -ApplicationDataDirectory "$applicationDataDirectory" -DaemonWorkingDirectory "$daemonDataDirectory" -InstallationID "$installationID" -ResetWorkingDirectory $preflightOptions'
     Pop $1
     ${if} $1 != 0
       Abort "$(resetWorkingDirectoryFailed)"
@@ -1471,7 +1491,11 @@ FunctionEnd
   !insertmacro daemonExecutable $0
   SetDetailsPrint both
   DetailPrint "$(registeringService)"
-  !insertmacro executeDaemonServiceCommand "install" "" $1 $3
+  StrCpy $unsafeServiceInstallOption ""
+  ${if} $allowUnsafeInstallationDirectory == 1
+    StrCpy $unsafeServiceInstallOption "-AllowUnsafeInstallationDirectoryPermissions"
+  ${endif}
+  !insertmacro executeDaemonServiceCommand "install" $unsafeServiceInstallOption $1 $3
   ${if} $1 != 0
     StrCpy $5 $1
     DetailPrint "$(rollingBackInstallation)"
@@ -1498,6 +1522,11 @@ FunctionEnd
     WriteRegStr HKLM "${INSTALLATION_LAYOUT_REGISTRY_KEY}" "ApplicationDataDirectory" "$applicationDataDirectory"
   ${endif}
   WriteRegStr HKLM "${INSTALLATION_LAYOUT_REGISTRY_KEY}" "DaemonDataDirectory" "$daemonDataDirectory"
+  ${if} $allowUnsafeInstallationDirectory == 1
+    WriteRegDWORD HKLM "${INSTALLATION_LAYOUT_REGISTRY_KEY}" "AllowUnsafeInstallationDirectoryPermissions" 1
+  ${else}
+    DeleteRegValue HKLM "${INSTALLATION_LAYOUT_REGISTRY_KEY}" "AllowUnsafeInstallationDirectoryPermissions"
+  ${endif}
   !insertmacro restoreInstallerRegistryView
   !insertmacro registerTaildropVerb
   ${if} $dataMigrationPrepared == 1
