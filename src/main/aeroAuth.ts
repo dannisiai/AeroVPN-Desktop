@@ -21,7 +21,7 @@ import { startAeroManagedConfig, stopAeroManagedService as stopManagedServiceDae
 import { daemonState } from "./state";
 import { enableWindowsSystemProxy, restoreWindowsSystemProxy } from "./systemProxyWindows";
 
-const API_BASE_URL = "https://www.ethworldcupcoin.xyz:8443";
+const API_BASE_URL = "https://hy2.ethworldcupcoin.xyz";
 const API_TIMEOUT_MILLISECONDS = 15_000;
 const AERO_DIRECT_DOMAINS = [
   "ethworldcupcoin.xyz",
@@ -47,6 +47,8 @@ interface StoredSession {
   deviceSessionId: string;
   account: AeroAccountSnapshot;
   connection: AeroConnectionSnapshot | null;
+  connectionSettings: { mode: AeroConnectionMode; options: AeroConnectionOptions } | null;
+  credentialRefreshRequired: boolean;
 }
 
 class AeroAuthError extends Error {
@@ -61,10 +63,48 @@ class AeroAuthError extends Error {
 let cachedSession: StoredSession | null | undefined;
 let refreshInFlight: Promise<StoredSession> | null = null;
 let pendingSystemProxyConnections = 0;
+let connectionTimer: ReturnType<typeof setTimeout> | null = null;
+let authOperation: Promise<unknown> = Promise.resolve();
+
+// Account IPC and timed renewals share the same queue. A late renewal cannot
+// restart the daemon after a queued disconnect or sign-out has completed.
+function serializeAuth<T>(operation: () => Promise<T>): Promise<T> {
+  const result = authOperation.then(operation);
+  authOperation = result.catch(() => {});
+  return result;
+}
+
+function cancelConnectionTimer(): void {
+  if (connectionTimer !== null) {
+    clearTimeout(connectionTimer);
+    connectionTimer = null;
+  }
+}
+
+function scheduleConnectionRenewal(retryDelay?: number): void {
+  cancelConnectionTimer();
+  const session = readSession();
+  if (!AERO_MANAGED_MODE || session?.connection == null) return;
+  const expectedId = session.connection.sessionId;
+  const remaining = session.connection.expiresAt * 1000 - Date.now();
+  const renewable = session.credentialRefreshRequired && session.connectionSettings !== null;
+  const delay = retryDelay ?? (renewable ? remaining - Math.min(120_000, remaining / 5) : remaining);
+  connectionTimer = setTimeout(() => {
+    connectionTimer = null;
+    void serializeAuth(() => renewConnection(expectedId)).catch((error: unknown) => {
+      console.error("AeroVPN connection renewal failed:", error instanceof Error ? error.message : "unknown error");
+    });
+  }, Math.max(0, Math.min(delay, Math.max(0, remaining), 2_147_483_647)));
+  connectionTimer.unref();
+}
 
 async function stopAeroManagedService(): Promise<void> {
-  await stopManagedServiceDaemon();
-  await restoreWindowsSystemProxy();
+  cancelConnectionTimer();
+  try {
+    await stopManagedServiceDaemon();
+  } finally {
+    await restoreWindowsSystemProxy();
+  }
 }
 
 function sessionPath(): string {
@@ -133,6 +173,13 @@ function parseSession(value: unknown): StoredSession | null {
     deviceSessionId: typeof candidate.deviceSessionId === "string" ? candidate.deviceSessionId : "",
     account: { email: account.email, plan },
     connection,
+    connectionSettings: isRecord(candidate.connectionSettings)
+      ? {
+          mode: parseConnectionMode(candidate.connectionSettings.mode),
+          options: parseConnectionOptions(candidate.connectionSettings.options),
+        }
+      : null,
+    credentialRefreshRequired: candidate.credentialRefreshRequired === true,
   };
 }
 
@@ -170,6 +217,7 @@ function writeSession(session: StoredSession): void {
 }
 
 function clearSession(): void {
+  cancelConnectionTimer();
   const path = sessionPath();
   if (existsSync(path)) {
     unlinkSync(path);
@@ -293,7 +341,8 @@ function refreshSessionTokens(session: StoredSession): Promise<StoredSession> {
         body: { refresh_token: session.refreshToken },
       });
     } catch (error) {
-      if (error instanceof AeroAuthError && error.statusCode >= 400 && error.statusCode < 500) {
+      if (error instanceof AeroAuthError && (error.statusCode === 401 || error.statusCode === 403)) {
+        await stopAeroManagedService().catch(() => {});
         clearSession();
         throw new AeroAuthError("Your session has expired. Please sign in again.", 401);
       }
@@ -395,7 +444,7 @@ function parseRegions(value: unknown): AeroRegionSnapshot[] {
   }).filter((region) => region.cities.length > 0);
 }
 
-function parseConnectionResponse(value: unknown): { connection: AeroConnectionSnapshot; nodeSpec: Record<string, unknown> } {
+function parseConnectionResponse(value: unknown): { connection: AeroConnectionSnapshot; nodeSpec: Record<string, unknown>; refreshRequired: boolean } {
   if (
     !isRecord(value) ||
     typeof value.session_id !== "string" ||
@@ -406,6 +455,8 @@ function parseConnectionResponse(value: unknown): { connection: AeroConnectionSn
     typeof value.country_code !== "string" ||
     typeof value.protocol !== "string" ||
     typeof value.expires_at !== "number" ||
+    !Number.isSafeInteger(value.expires_at) ||
+    value.expires_at <= Math.floor(Date.now() / 1000) ||
     !isRecord(value.node_spec)
   ) {
     throw new Error("The server returned an invalid connection response.");
@@ -422,6 +473,7 @@ function parseConnectionResponse(value: unknown): { connection: AeroConnectionSn
       expiresAt: value.expires_at,
     },
     nodeSpec: value.node_spec,
+    refreshRequired: value.credential_refresh_required === true,
   };
 }
 
@@ -650,12 +702,23 @@ async function connect(
     city_id: requiredString(cityId, "City"),
     protocol_preference: "auto",
   });
-  const { connection, nodeSpec } = parseConnectionResponse(response);
-  const config = buildConnectionConfig(connection.protocol, nodeSpec, mode, options);
+  const { connection, nodeSpec, refreshRequired } = parseConnectionResponse(response);
+  return activateConnection(connection, nodeSpec, mode, options, refreshRequired);
+}
+
+async function activateConnection(
+  connection: AeroConnectionSnapshot,
+  nodeSpec: Record<string, unknown>,
+  mode: AeroConnectionMode,
+  options: AeroConnectionOptions,
+  refreshRequired: boolean,
+): Promise<AeroConnectionSnapshot> {
+  cancelConnectionTimer();
   if (mode === "system_proxy") {
     pendingSystemProxyConnections++;
   }
   try {
+    const config = buildConnectionConfig(connection.protocol, nodeSpec, mode, options);
     if (mode !== "system_proxy") {
       await restoreWindowsSystemProxy();
     }
@@ -667,10 +730,13 @@ async function connect(
     if (session === null) {
       throw new AeroAuthError("Your account session expired while connecting.", 401);
     }
-    writeSession({ ...session, connection });
+    writeSession({ ...session, connection, connectionSettings: { mode, options }, credentialRefreshRequired: refreshRequired });
+    scheduleConnectionRenewal();
     return connection;
   } catch (error) {
     await stopAeroManagedService().catch(() => {});
+    const latest = readSession();
+    if (latest !== null) writeSession({ ...latest, connection: null, connectionSettings: null, credentialRefreshRequired: false });
     await authorizedRequest("/v1/connect/revoke", "POST", { session_id: connection.sessionId }).catch(() => {});
     throw error;
   } finally {
@@ -680,10 +746,57 @@ async function connect(
   }
 }
 
-async function disconnect(): Promise<void> {
-  await stopAeroManagedService();
+async function renewConnection(expectedId: string): Promise<void> {
   const session = readSession();
+  const connection = session?.connection;
+  if (session == null || connection == null || connection.sessionId !== expectedId) return;
+  if (connection.expiresAt * 1000 <= Date.now()) {
+    await disconnect();
+    return;
+  }
+  if (!session.credentialRefreshRequired || session.connectionSettings === null) {
+    scheduleConnectionRenewal();
+    return;
+  }
+  let response: unknown;
+  try {
+    response = await authorizedRequest("/v1/connect", "POST", {
+      region_id: connection.regionId,
+      city_id: connection.cityId,
+      protocol_preference: "auto",
+    });
+  } catch (error) {
+    if ((error instanceof AeroAuthError && error.statusCode >= 400 && error.statusCode < 500 && error.statusCode !== 429) ||
+        connection.expiresAt * 1000 <= Date.now() || readSession() === null) {
+      await disconnect().catch(() => {});
+    } else {
+      scheduleConnectionRenewal(15_000);
+    }
+    throw error;
+  }
+  // Issuing a replacement invalidates the previous server session. If its
+  // response/configuration is unusable, stop locally instead of retaining it.
+  try {
+    const next = parseConnectionResponse(response);
+    await activateConnection(next.connection, next.nodeSpec, session.connectionSettings.mode,
+      session.connectionSettings.options, next.refreshRequired);
+  } catch (error) {
+    await disconnect().catch(() => {});
+    throw error;
+  }
+}
+
+async function disconnect(): Promise<void> {
+  let stopError: unknown;
+  try {
+    await stopAeroManagedService();
+  } catch (error) {
+    stopError = error;
+  }
+  const session = readSession();
+  if (session !== null) writeSession({ ...session, connection: null, connectionSettings: null, credentialRefreshRequired: false });
   if (session === null || session.connection === null) {
+    if (stopError !== undefined) throw stopError;
     return;
   }
   try {
@@ -699,10 +812,7 @@ async function disconnect(): Promise<void> {
       throw error;
     }
   }
-  const latestSession = readSession();
-  if (latestSession !== null) {
-    writeSession({ ...latestSession, connection: null });
-  }
+  if (stopError !== undefined) throw stopError;
 }
 
 async function listConnectSessions(): Promise<AeroConnectSessionSnapshot[]> {
@@ -738,7 +848,8 @@ async function revokeConnectSession(sessionIdValue: string): Promise<void> {
   const sessionId = requiredString(sessionIdValue, "Connection session");
   const session = readSession();
   if (session?.connection?.sessionId === sessionId) {
-    await stopAeroManagedService();
+    await disconnect();
+    return;
   }
   await authorizedRequest("/v1/connect/revoke", "POST", { session_id: sessionId });
   const latestSession = readSession();
@@ -748,6 +859,7 @@ async function revokeConnectSession(sessionIdValue: string): Promise<void> {
 }
 
 async function login(email: string, password: string): Promise<AeroAccountSnapshot> {
+  if (readSession()?.connection != null) await disconnect();
   const response = await request("/v1/auth/login", {
     method: "POST",
     body: {
@@ -775,6 +887,8 @@ async function login(email: string, password: string): Promise<AeroAccountSnapsh
     deviceSessionId: typeof response.device_session_id === "string" ? response.device_session_id : "",
     account,
     connection: null,
+    connectionSettings: null,
+    credentialRefreshRequired: false,
   });
   try {
     return await loadAccount();
@@ -791,6 +905,8 @@ async function restore(): Promise<AeroAccountSnapshot | null> {
     }
     return null;
   }
+  // Arm the deadline even when the account API is temporarily unreachable.
+  scheduleConnectionRenewal();
   try {
     const account = await loadAccount();
     const latest = readSession();
@@ -806,7 +922,7 @@ async function restore(): Promise<AeroAccountSnapshot | null> {
     }
     return account;
   } catch (error) {
-    if (error instanceof AeroAuthError && error.statusCode === 401) {
+    if (error instanceof AeroAuthError && (error.statusCode === 401 || error.statusCode === 403)) {
       await stopAeroManagedService().catch(() => {});
       clearSession();
       return null;
@@ -839,7 +955,7 @@ export function registerAeroAuth(): void {
 
   ipcMain.handle(
     AERO_AUTH_CALL,
-    async (_event, method: string, ...args: unknown[]): Promise<ProfilesResult> => {
+    async (_event, method: string, ...args: unknown[]): Promise<ProfilesResult> => serializeAuth(async () => {
       try {
         switch (method) {
           case "restore":
@@ -929,6 +1045,6 @@ export function registerAeroAuth(): void {
           error: error instanceof Error ? error.message : String(error),
         };
       }
-    },
+    }),
   );
 }
