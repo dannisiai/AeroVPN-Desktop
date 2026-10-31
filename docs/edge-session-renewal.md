@@ -23,5 +23,11 @@ saved sessions without connection settings remain usable until their original
 connection expires, at which point a new connection must be selected.
 
 The Windows GitHub workflow packages this Electron application and its pinned
-Dashboard and connection engine. No automated or connection tests were run for
+Dashboard and connection engine. Its self-signed package certificate is valid
+for three years; the private key is still removed after packaging. The service
+checks the present certificate validity, so the previous two-day lifetime would
+have made an installed build stop authenticating after two days. This is not a
+publicly trusted release certificate.
+
+No automated or connection tests were run for
 this change, as requested by the operator.

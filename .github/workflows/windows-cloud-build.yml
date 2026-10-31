@@ -114,14 +114,17 @@ jobs:
             }
           }
 
-      - name: Create short-lived code-signing certificate
+      - name: Create package code-signing certificate
         shell: pwsh
         working-directory: AeroVPN-Desktop
         run: |
           $ErrorActionPreference = 'Stop'
           $password = [Guid]::NewGuid().ToString('N')
           $securePassword = ConvertTo-SecureString -String $password -Force -AsPlainText
-          $certificate = New-SelfSignedCertificate -Type CodeSigningCert -Subject 'CN=Temporary GitHub Actions Build' -CertStoreLocation 'Cert:\CurrentUser\My' -KeyAlgorithm RSA -KeyLength 2048 -HashAlgorithm SHA256 -KeyExportPolicy Exportable -NotAfter (Get-Date).AddDays(2)
+          # The installed service checks the certificate's current validity.
+          # Only private signing material is temporary; a two-day certificate
+          # would make the installed application stop authenticating in two days.
+          $certificate = New-SelfSignedCertificate -Type CodeSigningCert -Subject 'CN=AeroVPN Build' -CertStoreLocation 'Cert:\CurrentUser\My' -KeyAlgorithm RSA -KeyLength 2048 -HashAlgorithm SHA256 -KeyExportPolicy Exportable -NotAfter (Get-Date).AddYears(3)
           $certificatePath = Join-Path $env:RUNNER_TEMP 'aerovpn-ci-signing.pfx'
           Export-PfxCertificate -Cert $certificate -FilePath $certificatePath -Password $securePassword | Out-Null
           $configuration = @{ windows = @{ certificateFile = $certificatePath; certificatePassword = $password } } | ConvertTo-Json -Compress
