@@ -20,9 +20,8 @@ import type {
 import { startAeroManagedConfig, stopAeroManagedService as stopManagedServiceDaemon } from "./profiles";
 import { daemonState } from "./state";
 import { enableWindowsSystemProxy, restoreWindowsSystemProxy } from "./systemProxyWindows";
+import { CLOUDFLARE_BOOTSTRAP_IPS, requestGateway } from "./cfAnycastDispatcher";
 
-const API_BASE_URL = "https://hy2.ethworldcupcoin.xyz";
-const API_TIMEOUT_MILLISECONDS = 15_000;
 const AERO_DIRECT_DOMAINS = [
   "ethworldcupcoin.xyz",
   "aerovpn.com",
@@ -241,30 +240,17 @@ async function request(
   endpoint: string,
   options: { method: "GET" | "POST"; body?: Record<string, unknown>; accessToken?: string },
 ): Promise<unknown> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MILLISECONDS);
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: options.method,
-      headers: {
-        Accept: "application/json",
-        ...(options.body === undefined ? {} : { "Content-Type": "application/json" }),
-        ...(options.accessToken === undefined
-          ? {}
-          : { Authorization: `Bearer ${options.accessToken}` }),
-      },
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
-      signal: controller.signal,
-    });
+    const response = await requestGateway(endpoint, options.method, options.body, options.accessToken);
     let body: unknown = {};
-    if (response.status !== 204 && response.headers.get("content-length") !== "0") {
+    if (response.status !== 204 && response.body !== "") {
       try {
-        body = await response.json();
+        body = JSON.parse(response.body);
       } catch {
         throw new AeroAuthError(`Non-JSON response from server (HTTP ${response.status})`, response.status);
       }
     }
-    if (!response.ok) {
+    if (response.status < 200 || response.status >= 300) {
       throw new AeroAuthError(responseMessage(body) ?? "Request failed", response.status);
     }
     return body;
@@ -276,8 +262,6 @@ async function request(
       throw new Error("Network request timed out. Please try again.");
     }
     throw new Error(`Network connection error: ${error instanceof Error ? error.message : String(error)}`);
-  } finally {
-    clearTimeout(timeout);
   }
 }
 
@@ -498,7 +482,9 @@ function buildNodeOutbound(protocolValue: string, nodeSpec: Record<string, unkno
     const outbound: Record<string, unknown> = {
       type: "hysteria2",
       tag: "proxy",
-      server,
+      // Preserve the TLS server name while avoiding a local DNS lookup for
+      // the current managed node. Other nodes retain their supplied address.
+      server: server === "hy2.ethworldcupcoin.xyz" ? "34.213.227.220" : server,
       server_port: serverPort,
       password: nodeSpec.password,
       tls: { enabled: true, server_name: serverName, ...(alpn.length > 0 ? { alpn } : {}) },
@@ -608,6 +594,7 @@ function buildConnectionConfig(
       auto_detect_interface: true,
       default_domain_resolver: "local-dns",
       rules: [
+        { process_name: ["AeroVPN.exe"], ip_cidr: CLOUDFLARE_BOOTSTRAP_IPS.map((ip) => `${ip}/32`), outbound: "direct" },
         { action: "sniff" },
         { protocol: "dns", action: "hijack-dns" },
         ...(mode === "tun"
