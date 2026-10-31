@@ -1,0 +1,60 @@
+.shell {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  background: #faf9f5;
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.setup-notice {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
+}
+
+.setup-notice-icon {
+  display: grid;
+  flex: 0 0 40px;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: #c2410c;
+  background: #ffedd5;
+  border-radius: 12px;
+}
+
+.setup-notice-text {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.setup-notice-text strong { color: #7c2d12; font-size: 14px; }
+.setup-notice-text span { color: #9a3412; font-size: 12px; line-height: 1.45; }
+.setup-notice-text small { color: #b91c1c; font-size: 11px; overflow-wrap: anywhere; }
+
+.profile-body {
+  flex: 1;
+  min-height: 0;
+  padding: 12px 24px 32px;
+  overflow: auto;
+}
+
+@media (max-width: 920px) {
+  .setup-notice { flex-wrap: wrap; }
+  .setup-notice-text { flex-basis: calc(100% - 58px); }
+  .setup-notice > button { margin-left: 54px; }
+}
