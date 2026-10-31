@@ -20,7 +20,7 @@ import type {
 import { startAeroManagedConfig, stopAeroManagedService as stopManagedServiceDaemon } from "./profiles";
 import { daemonState } from "./state";
 import { enableWindowsSystemProxy, restoreWindowsSystemProxy } from "./systemProxyWindows";
-import { CLOUDFLARE_BOOTSTRAP_IPS, requestGateway } from "./cfAnycastDispatcher";
+import { requestGateway, WORKER_HOST } from "./accountGateway";
 
 const AERO_DIRECT_DOMAINS = [
   "ethworldcupcoin.xyz",
@@ -34,6 +34,7 @@ const SYSTEM_PROXY_BYPASS_DOMAINS = [
   "localhost",
   "127.*",
   "[::1]",
+  WORKER_HOST,
   ...AERO_DIRECT_DOMAINS.map((domain) =>
     domain.startsWith(".") ? `*${domain}` : domain,
   ),
@@ -597,6 +598,7 @@ function buildConnectionConfig(
             { type: "local", tag: "local-dns" },
           ],
       rules: [
+        { domain: [WORKER_HOST], action: "route", server: "local-dns" },
         { domain_suffix: AERO_DIRECT_DOMAINS, action: "route", server: "local-dns" },
       ],
       final: "remote-dns",
@@ -608,8 +610,8 @@ function buildConnectionConfig(
       auto_detect_interface: true,
       default_domain_resolver: "local-dns",
       rules: [
-        { process_name: ["AeroVPN.exe"], ip_cidr: CLOUDFLARE_BOOTSTRAP_IPS.map((ip) => `${ip}/32`), outbound: "direct" },
         { action: "sniff" },
+        { process_name: ["AeroVPN.exe"], domain: [WORKER_HOST], outbound: "direct" },
         { protocol: "dns", action: "hijack-dns" },
         ...(mode === "tun"
           ? [{ inbound: ["tun-in"], ip_cidr: ["172.19.0.0/30", "fdfe:dcba:9876::/126"], action: "reject", method: "drop" }]
