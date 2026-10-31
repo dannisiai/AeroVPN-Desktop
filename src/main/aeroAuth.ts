@@ -479,6 +479,20 @@ function buildNodeOutbound(protocolValue: string, nodeSpec: Record<string, unkno
     const alpn = Array.isArray(tls.alpn)
       ? tls.alpn.filter((value): value is string => typeof value === "string" && value !== "")
       : [];
+    // Trust two operator-controlled keys during rotation. The second pin is a
+    // pre-provisioned standby; arbitrary backend-provided pins are not trusted.
+    const managedUSNode = server === "hy2.ethworldcupcoin.xyz" || server === "34.213.227.220";
+    const tlsOptions = managedUSNode
+      ? {
+          enabled: true,
+          server_name: "aerovpn-node.invalid",
+          certificate_public_key_sha256: [
+            "4sY1zTt936M7DLK/J6WqZEiHKFh43B88n067rAqQx4k=",
+            "3FGRqphiK7P4XKgNx5774pAtDwceNeNgxJi5o0rIkNg=",
+          ],
+          ...(alpn.length > 0 ? { alpn } : {}),
+        }
+      : { enabled: true, server_name: serverName, ...(alpn.length > 0 ? { alpn } : {}) };
     const outbound: Record<string, unknown> = {
       type: "hysteria2",
       tag: "proxy",
@@ -487,7 +501,7 @@ function buildNodeOutbound(protocolValue: string, nodeSpec: Record<string, unkno
       server: server === "hy2.ethworldcupcoin.xyz" ? "34.213.227.220" : server,
       server_port: serverPort,
       password: nodeSpec.password,
-      tls: { enabled: true, server_name: serverName, ...(alpn.length > 0 ? { alpn } : {}) },
+      tls: tlsOptions,
     };
     if (obfsValue !== null) {
       if (typeof obfsValue.password !== "string" || obfsValue.password === "") {
